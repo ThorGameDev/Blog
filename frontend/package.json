@@ -1,0 +1,20 @@
+{
+    "scripts": {
+        "build:ts": "esbuild ./scripts/script.ts --bundle --outfile=./dist/scripts/script.js --minify --target=es2020",
+        "build:scss": "npx sass ./style:./dist/style --style=compressed --no-source-map", 
+        "build:html": "npx html-minifier-next --input-dir=./html/ --output-dir=./dist/ -v --preset comprehensive",
+        "build:prod": "npm run build:ts && npm run build:scss && npm run build:html",
+
+        "build:ts-dev": "esbuild ./scripts/script.ts --bundle --outfile=./dist/scripts/script.js --target=es2020",
+        "build:scss-dev": "npx sass ./style:./dist/style --style=expanded && cp -r ./style/* ./dist/style", 
+        "build:html-dev": "cp -r ./html/* ./dist",
+        "build:dev": "npm run build:ts-dev && npm run build:scss-dev && npm run build:html-dev",
+
+        "build": "npm run build:prod"
+    },
+    "devDependencies": {
+        "esbuild": "0.28.1",
+        "html-minifier-next": "7.5.0",
+        "sass": "1.102.0"
+    }
+}

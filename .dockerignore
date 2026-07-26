@@ -1,0 +1,11 @@
+# Generic ignore ist 
+.vscode
+
+# Ignore git files
+**/.gitignore
+**/.git/
+README.md
+
+# Ignore docker files
+**/docker-compose*
+**/Dockerfile*
