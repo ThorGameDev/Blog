@@ -1,5 +1,5 @@
 # Get a copy of the go compiler
-FROM golang:1.25-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 # Set working directory. "." now means this location
 WORKDIR /src
