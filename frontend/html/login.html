@@ -8,6 +8,13 @@
     <body>
         <h1>Login</h1>
         <p id=errorDisplay></p>
+        <form action="api/security/login" method="post" id="signupForm">
+            <input type="text" id="username" name="username" placeholder="Username">
+            <input type="password" id="password" name="password" placeholder="Password">
+            <input type="hidden" id="from" name="from" value="/index.html">
+            <button type="submit">Submit</button>
+        </form>
         <p>Don't have an account? <a href="signup.html?from=/index.html">Sign Up</a> instead.</p>
+        <script src="scripts/login.js"></script>
     </body>
 </html>
