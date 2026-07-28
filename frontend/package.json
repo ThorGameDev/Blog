@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "build:ts": "esbuild ./scripts/script.ts --bundle --outfile=./dist/scripts/script.js --minify --target=es2020",
+        "build:ts": "esbuild ./scripts/*.ts --bundle --outdir=./dist/scripts/ --minify --target=es2020",
         "build:scss": "npx sass ./style:./dist/style --style=compressed --no-source-map", 
         "build:html": "npx html-minifier-next --input-dir=./html/ --output-dir=./dist/ -v --preset comprehensive",
         "build:prod": "npm run build:ts && npm run build:scss && npm run build:html",
