@@ -22,13 +22,11 @@ async function sendSignup(): Promise<void> {
             method: "POST",
             body: dataURL
         }) ;
-        const feedback = await response.text();
 
-        if (feedback == "Success!"){
-            const params = new URLSearchParams(window.location.search)
-            const from =  params.get("from") ?? "/index.html"
-            window.location.replace(from)
+        if (response.redirected) {
+            window.location.replace(response.url)
         } else {
+            const feedback = await response.text();
             const errorDisplay = document.getElementById("errorDisplay") ?? err(feedback);
             errorDisplay.innerHTML = feedback;
         }

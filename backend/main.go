@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"strings"
@@ -16,11 +16,11 @@ func helloWorld(w http.ResponseWriter, req *http.Request) {
 
 func createAccount(w *http.ResponseWriter, username string, password string, confirmPass string) error{
 	if username == "old" {
-		return errors.New("That account already exists!")
+		return errors.New("exists")
 	}
 
 	if password != confirmPass {
-		return errors.New("The passwords do not match!")
+		return errors.New("badpass")
 	}
 
 	// Most of these settings are temporary. A better cookie is needed latter, such as when https is required for accounts
@@ -30,13 +30,34 @@ func createAccount(w *http.ResponseWriter, username string, password string, con
 		Path: "/",
 		MaxAge: 3600,
 		HttpOnly: true,
-		//Secure: true,
-		Secure: false,
+		Secure: true,
 		SameSite: http.SameSiteStrictMode,
 	}
 	http.SetCookie(*w, sessionCookie)
 
 	return nil
+}
+
+func asValidURL(rawURL string) string {
+	validURLs := map[string]bool{
+		"/index.html": true,
+		"/admin.html": true,
+		"/account.html": true,
+	}
+	if validURLs[rawURL]{
+		return rawURL
+	}
+	return "/index.html"
+}
+func asValidSignupError(errid string) string {
+	errmap := map[string]string {
+		"exists": "That account already exists!",
+		"badpass": "The passwords do not match!",
+	}
+	if _, ok := errmap[errid]; ok {
+		return errmap[errid]
+	}
+	return "Unknown error"
 }
 
 func signup(w http.ResponseWriter, req *http.Request) {
@@ -53,18 +74,15 @@ func signup(w http.ResponseWriter, req *http.Request) {
 
 	username := req.PostForm.Get("username")
 	password := req.PostForm.Get("password")
-	from := req.PostForm.Get("from")
-	if from == "" {
-		from =  "/index.html"
-	}
-	fromurl := url.QueryEscape(from)
+	fromurl := asValidURL(req.PostForm.Get("from"))
 	confirmPass := req.PostForm.Get("confirmPass")
 	hasjs := req.PostForm.Get("hasjs")
 	
 	err = createAccount(&w, username, password, confirmPass)
 	if err != nil {
 		if hasjs == "1" {
-			fmt.Fprintf(w, err.Error())
+			errmsg := asValidSignupError(err.Error())
+			fmt.Fprintf(w, "%s", errmsg)
 		} else {
 			errmsg := url.QueryEscape(err.Error())
 			http.Redirect(w, req, "/signup.html?from=" + fromurl + "&err=" + errmsg, http.StatusSeeOther)
@@ -72,12 +90,7 @@ func signup(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	
-	// Success! Return to previous page
-	if hasjs == "1" {
-		fmt.Fprintf(w, "Success!")
-	} else {
-		http.Redirect(w, req, fromurl, http.StatusSeeOther)
-	}
+	http.Redirect(w, req, fromurl, http.StatusSeeOther)
 }
 
 func retrievePage(url string) (string, error) {
@@ -103,17 +116,13 @@ func signupPage(w http.ResponseWriter, req *http.Request) {
 	url := "http://nginx-frontend/signup.html"
 	page, err := retrievePage(url)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		log.Printf("Error fetching signup page: %v", err)
+		slog.Error("Error fetching sign up page", "err", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	fromurl := req.URL.Query().Get("from")
-	if fromurl == "" {
-		fromurl =  "/index.html"
-	}
-	errormsg := req.URL.Query().Get("err")
+	fromurl := asValidURL(req.URL.Query().Get("from"))
+	errormsg := asValidSignupError(req.URL.Query().Get("err"))
 
 	replaced := strings.ReplaceAll(page, "/index.html", fromurl)
     errorDisp := strings.ReplaceAll(replaced, `<p id=errorDisplay>`, `<p class=errorDisplay>` + errormsg)
@@ -126,16 +135,13 @@ func loginPage(w http.ResponseWriter, req *http.Request) {
 	url := "http://nginx-frontend/login.html"
 	page, err := retrievePage(url)
 	if err != nil {
-		log.Printf("Error fetching login page: %v", err)
+		slog.Error("Error fetching login page", "err", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}
 
-	fromurl := req.URL.Query().Get("from")
-	if fromurl == "" {
-		fromurl =  "/index.html"
-	}
-	errormsg := req.URL.Query().Get("err")
+	fromurl := asValidURL(req.URL.Query().Get("from"))
+	errormsg := asValidSignupError(req.URL.Query().Get("err"))
 
 	replaced := strings.ReplaceAll(page, "/index.html", fromurl)
     errorDisp := strings.ReplaceAll(replaced, `<p id=errorDisplay>`, `<p class=errorDisplay>` + errormsg)
@@ -145,7 +151,7 @@ func loginPage(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	fmt.Println("Starting backend!")
+	slog.Info("Starting backend!")
 	http.HandleFunc("/api/helloWorld", helloWorld)
 	http.HandleFunc("/api/security/signup", signup)
 
