@@ -14,7 +14,8 @@ USER node
 COPY package*.json ./
 
 # Install the dependencies. Will run if package.json changes
-RUN npm ci
+RUN --mount=type=cache,target=/home/node/.npm,uid=1000,gid=1000 \
+    npm ci --perfer-online
 
 # Copy the directories that will be compiled/minified to the development environment
 COPY ./scripts ./scripts
@@ -29,7 +30,8 @@ RUN if [ "$MODE" = "dev" ]; then npm run build:dev; else npm run build:prod; fi
 
 
 # Run stage
-FROM nginx:alpine
+#FROM nginx-unprivileged:1.31-alpine3.24-perl
+FROM nginxinc/nginx-unprivileged:1.31-alpine3.24-perl
 
 # Copy the nginx config file over
 COPY ./nginx.conf /etc/nginx/nginx.conf
@@ -40,7 +42,7 @@ COPY ./root /usr/share/nginx/html
 COPY --from=builder /app/dist /usr/share/nginx/html
 
 # Allow connections to the http protocol
-EXPOSE 80
+EXPOSE 8080
 
 # Launch nginx
 CMD ["nginx", "-g", "daemon off;"]
