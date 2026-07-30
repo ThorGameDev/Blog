@@ -1,13 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"errors"
 	"fmt"
+	"html"
 	"io"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
+
+	_ "github.com/lib/pq"
 )
 
 func loginTo(w http.ResponseWriter, username string, password string) error {
@@ -166,12 +171,12 @@ func accountPage(w http.ResponseWriter, req *http.Request, url string) {
 	}
 
 	fromurl := asValidURL(req.URL.Query().Get("from"))
-	page = strings.ReplaceAll(page, "/index.html", fromurl)
+	page = strings.ReplaceAll(page, "/index.html", html.EscapeString(fromurl))
 
 	errorurl := req.URL.Query().Get("err")
-	if errorurl != ""{
+	if errorurl != "" {
 		errormsg := asValidSignupError(errorurl)
-		page = strings.ReplaceAll(page, `<p id=errorDisplay>`, `<p class=errorDisplay>`+errormsg)
+		page = strings.ReplaceAll(page, `<p id=errorDisplay>`, `<p class=errorDisplay>`+html.EscapeString(errormsg))
 	}
 
 	w.Header().Set("Content-Type", "text/html")
@@ -189,6 +194,24 @@ func loginPage(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	slog.Info("Testing SQL!!")
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
+		"db", 
+		5432,
+		os.Getenv("POSTGRES_USER"),
+		os.Getenv("POSTGRES_PASSWORD"),
+		os.Getenv("POSTGRES_DB"),
+	)
+	slog.Info(psqlInfo)
+	db, err := sql.Open("postgres", psqlInfo)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+	if err := db.Ping(); err != nil {
+		panic(err)
+	}
+
 	slog.Info("Starting backend!")
 	http.HandleFunc("/api/security/signup", signup)
 	http.HandleFunc("/api/security/login", login)
