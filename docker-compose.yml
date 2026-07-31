@@ -1,5 +1,6 @@
 services:
   nginx-frontend:
+    container_name: blog-frontend
     restart: always
     build:
       context: ./frontend
@@ -12,12 +13,13 @@ services:
       - app-network
   
   api:
+    container_name: blog-api
     restart: always
     build:
       context: ./backend
       dockerfile: Dockerfile
     env_file: 
-      - postgres.env
+      - database/postgres.env
     depends_on:
       - db
     networks:
@@ -25,12 +27,15 @@ services:
       - postgres-network
 
   db:
-    image: postgres:alpine
+    container_name: blog-db
+    build:
+      context: ./database/
+      dockerfile: Dockerfile
     restart: always
     env_file: 
-      - postgres.env
-    volumes:
-      - pgdata:/var/lib/postgresql
+      - database/postgres.env
+    # volumes: # Remove for testing the init
+    #   - pgdata:/var/lib/postgresql
     networks:
       - postgres-network
 

@@ -1,7 +1,7 @@
 package main
 
 import (
-	"database/sql"
+	"context"
 	"errors"
 	"fmt"
 	"html"
@@ -9,10 +9,9 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
-	_ "github.com/lib/pq"
+	"blogbackend/internal/db"
 )
 
 func loginTo(w http.ResponseWriter, username string, password string) error {
@@ -194,23 +193,25 @@ func loginPage(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
-	slog.Info("Testing SQL!!")
-	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
-		"db", 
-		5432,
-		os.Getenv("POSTGRES_USER"),
-		os.Getenv("POSTGRES_PASSWORD"),
-		os.Getenv("POSTGRES_DB"),
-	)
-	slog.Info(psqlInfo)
-	db, err := sql.Open("postgres", psqlInfo)
-	if err != nil {
+	if err := db.Init(); err != nil {
 		panic(err)
 	}
 	defer db.Close()
-	if err := db.Ping(); err != nil {
-		panic(err)
+
+	rows, err := db.Pool.Query(context.Background(), "SELECT username FROM users;")
+	if err != nil {
+		slog.Error("Error while querying the database", "err", err)
 	}
+	defer rows.Close()
+
+	var retrieved string
+	for rows.Next() {
+		if err := rows.Scan(&retrieved); err != nil {
+			slog.Error("Critical Error!", "err", err)
+		}
+		slog.Info(retrieved)
+	}
+
 
 	slog.Info("Starting backend!")
 	http.HandleFunc("/api/security/signup", signup)
