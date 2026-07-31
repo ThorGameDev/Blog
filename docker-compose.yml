@@ -21,7 +21,8 @@ services:
     env_file: 
       - database/postgres.env
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     networks:
       - app-network
       - postgres-network

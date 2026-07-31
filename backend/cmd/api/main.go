@@ -12,14 +12,24 @@ import (
 	"strings"
 
 	"blogbackend/internal/db"
+
+	"github.com/jackc/pgx/v5"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func loginTo(w http.ResponseWriter, username string, password string) error {
-	if username != "user" {
-		return errors.New("nouser")
+	var pash string
+	err := db.Pool.QueryRow(context.Background(), "SELECT pash FROM users WHERE username = $1", username).Scan(&pash)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return errors.New("nouser")
+		} else {
+			slog.Error("Failed to check the existence of the account. ", "err", err)
+			return errors.New("sqlfail")
+		}
 	}
 
-	if password != "pass" {
+	if err := bcrypt.CompareHashAndPassword([]byte(pash), []byte(password)); err != nil {
 		return errors.New("nopass")
 	}
 
@@ -39,15 +49,38 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 }
 
 func createAccount(w http.ResponseWriter, username string, password string, confirmPass string) error {
-	if username == "old" {
-		return errors.New("exists")
-	}
-
 	if password != confirmPass {
 		return errors.New("badpass")
 	}
 
-	//If sql, create account logic here
+	var exists bool
+	err := db.Pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", username).Scan(&exists)
+	if err != nil {
+		slog.Error("Failed to check the existence of the account. ", "err", err)
+		return errors.New("sqlfail")
+	}
+	if exists {
+		return errors.New("exists")
+	}
+
+	pash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		slog.Error("Error while hashing password.", "err", err)
+		return errors.New("hashfail")
+	}
+
+	status, err := db.Pool.Exec(context.Background(),
+		"INSERT INTO users (username, pash, pfp_file_id, privilege) VALUES ($1, $2, 'file', 0)",
+		username, string(pash))
+	if err != nil {
+		slog.Error("Failed to create account! ", "err", err)
+		return errors.New("sqlfail")
+	}
+
+	if status.RowsAffected() != 1 {
+		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
+		return errors.New("sqlfail")
+	}
 
 	return loginTo(w, username, password)
 }
@@ -66,10 +99,12 @@ func asValidURL(rawURL string) string {
 
 func asValidSignupError(errid string) string {
 	errmap := map[string]string{
-		"exists":  "That account already exists!",
-		"badpass": "The passwords do not match!",
-		"nouser":  "Incorrect username!",
-		"nopass":  "Incorrect password!",
+		"exists":   "That account already exists!",
+		"badpass":  "The passwords do not match!",
+		"nouser":   "Incorrect username!",
+		"nopass":   "Incorrect password!",
+		"sqlfail":  "Internal Server Error: Running SQL query failed!",
+		"hashfail": "Internal Server Error: Failure hashing password",
 	}
 	if _, ok := errmap[errid]; ok {
 		return errmap[errid]
@@ -183,12 +218,12 @@ func accountPage(w http.ResponseWriter, req *http.Request, url string) {
 }
 
 func signupPage(w http.ResponseWriter, req *http.Request) {
-	url := "http://nginx-frontend/signup.html"
+	url := "http://nginx-frontend:8080/signup.html"
 	accountPage(w, req, url)
 }
 
 func loginPage(w http.ResponseWriter, req *http.Request) {
-	url := "http://nginx-frontend/login.html"
+	url := "http://nginx-frontend:8080/login.html"
 	accountPage(w, req, url)
 }
 
@@ -211,7 +246,6 @@ func main() {
 		}
 		slog.Info(retrieved)
 	}
-
 
 	slog.Info("Starting backend!")
 	http.HandleFunc("/api/security/signup", signup)
