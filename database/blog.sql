@@ -25,9 +25,19 @@ INSERT INTO pages (pageid) VALUES (1);
 
 CREATE TABLE languages (
     langcode VARCHAR(2) NOT NULL,
+    langname VARCHAR(32) NOT NULL,
+    pagetags TEXT NOT NULL,
+    urlbase VARCHAR(32) NOT NULL,
     PRIMARY KEY (langcode)
 );
-INSERT INTO languages VALUES ('en'), ('ja');
+INSERT INTO languages VALUES
+('en', 'English', '', '/en/blog/'),
+(
+    'ja',
+    '日本語',
+    '<meta name="robots" content="noindex, follow">',
+    '/ja/ブログ/'
+);
 
 CREATE TABLE translations (
     translationid SERIAL,
