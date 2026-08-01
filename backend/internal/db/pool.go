@@ -14,8 +14,8 @@ var Pool *pgxpool.Pool
 func Init() error {
 	slog.Info("Opening new SQL connection!")
 
-	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", 
-		"db", 
+	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+		"db",
 		5432,
 		os.Getenv("POSTGRES_USER"),
 		os.Getenv("POSTGRES_PASSWORD"),

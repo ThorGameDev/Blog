@@ -2,13 +2,17 @@ package auth
 
 import (
 	"blogbackend/internal/db"
+	"blogbackend/internal/page/accountpage/errorcode"
 	"blogbackend/internal/security/whitelist"
 	"context"
+	"crypto/rand"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -16,26 +20,46 @@ import (
 
 func loginTo(w http.ResponseWriter, username string, password string) error {
 	var pash string
-	err := db.Pool.QueryRow(context.Background(), "SELECT pash FROM users WHERE username = $1", username).Scan(&pash)
+	var uid int
+	err := db.Pool.QueryRow(context.Background(), "SELECT pash, uid FROM users WHERE username = $1", username).Scan(&pash, &uid)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return errors.New("nouser")
+			return errors.New(errorcode.IncorrectUsername)
 		} else {
 			slog.Error("Failed to check the existence of the account. ", "err", err)
-			return errors.New("sqlfail")
+			return errors.New(errorcode.InternalSqlError)
 		}
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(pash), []byte(password)); err != nil {
-		return errors.New("nopass")
+		return errors.New(errorcode.IncorrectPassword)
 	}
 
-	// Most of these settings are temporary. A better cookie is needed latter, such as when https is required for accounts
+	// Login good, proceed to setting session
+	randbytes := make([]byte, 32)
+	if _, err := rand.Read(randbytes); err != nil {
+		return errors.New("")
+	}
+	cookie := base64.URLEncoding.EncodeToString(randbytes)
+
+	expireDate := time.Now().Add(time.Hour * 24) // Expires cookie after a day of neglect
+
+	status, err := db.Pool.Exec(context.Background(),
+		"INSERT INTO sessions (session_token, uid, expire_date) VALUES ($1, $2, $3)",
+		cookie, uid, expireDate)
+	if err != nil {
+		slog.Error("Failed to create account! ", "err", err)
+		return errors.New(errorcode.InternalSqlError)
+	}
+	if status.RowsAffected() != 1 {
+		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
+		return errors.New(errorcode.InternalSqlError)
+	}
+
 	sessionCookie := &http.Cookie{
-		Name:     "Session",
-		Value:    "Logged In",
+		Name:     "SessionID",
+		Value:    cookie,
 		Path:     "/",
-		MaxAge:   3600,
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
@@ -47,23 +71,23 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 
 func createAccount(w http.ResponseWriter, username string, password string, confirmPass string) error {
 	if password != confirmPass {
-		return errors.New("badpass")
+		return errors.New(errorcode.UnmatchedPasswords)
 	}
 
 	var exists bool
 	err := db.Pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", username).Scan(&exists)
 	if err != nil {
 		slog.Error("Failed to check the existence of the account. ", "err", err)
-		return errors.New("sqlfail")
+		return errors.New(errorcode.InternalSqlError)
 	}
 	if exists {
-		return errors.New("exists")
+		return errors.New(errorcode.AccountExists)
 	}
 
 	pash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("Error while hashing password.", "err", err)
-		return errors.New("hashfail")
+		return errors.New(errorcode.InternalError)
 	}
 
 	status, err := db.Pool.Exec(context.Background(),
@@ -71,12 +95,12 @@ func createAccount(w http.ResponseWriter, username string, password string, conf
 		username, string(pash))
 	if err != nil {
 		slog.Error("Failed to create account! ", "err", err)
-		return errors.New("sqlfail")
+		return errors.New(errorcode.InternalSqlError)
 	}
 
 	if status.RowsAffected() != 1 {
 		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
-		return errors.New("sqlfail")
+		return errors.New(errorcode.InternalSqlError)
 	}
 
 	return loginTo(w, username, password)
@@ -102,7 +126,7 @@ func login(w http.ResponseWriter, req *http.Request) {
 	err = loginTo(w, username, password)
 	if err != nil {
 		if hasjs == "1" {
-			errmsg := whitelist.AsValidSignupError(err.Error())
+			errmsg := errorcode.CodeToMessage(err.Error())
 			fmt.Fprintf(w, "%s", errmsg)
 		} else {
 			errmsg := url.QueryEscape(err.Error())
@@ -135,7 +159,7 @@ func signup(w http.ResponseWriter, req *http.Request) {
 	err = createAccount(w, username, password, confirmPass)
 	if err != nil {
 		if hasjs == "1" {
-			errmsg := whitelist.AsValidSignupError(err.Error())
+			errmsg := errorcode.CodeToMessage(err.Error())
 			fmt.Fprintf(w, "%s", errmsg)
 		} else {
 			errmsg := url.QueryEscape(err.Error())

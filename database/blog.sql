@@ -8,9 +8,11 @@ CREATE TABLE users (
 );
 
 -- This is the sort of thing to move to redis eventually
+-- There is currently no expire logic
 CREATE TABLE sessions (
-    session_token VARCHAR(36) NOT NULL,
+    session_token VARCHAR(44) NOT NULL,
     uid INT NOT NULL,
+    expire_date TIMESTAMP,
     FOREIGN KEY (uid) REFERENCES users(uid),
     PRIMARY KEY (session_token)
 )

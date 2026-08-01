@@ -1,16 +1,16 @@
 package accountpage
 
 import (
+	"fmt"
 	"html"
-	"strings"
+	"io"
 	"log/slog"
 	"net/http"
-	"fmt"
-	"io"
+	"strings"
 
+	"blogbackend/internal/page/accountpage/errorcode"
 	"blogbackend/internal/security/whitelist"
 )
-
 
 func retrievePage(url string) (string, error) {
 	res, err := http.Get(url)
@@ -44,7 +44,7 @@ func accountPage(w http.ResponseWriter, req *http.Request, url string) {
 
 	errorurl := req.URL.Query().Get("err")
 	if errorurl != "" {
-		errormsg := whitelist.AsValidSignupError(errorurl)
+		errormsg := errorcode.CodeToMessage(errorurl)
 		page = strings.ReplaceAll(page, `<p id=errorDisplay>`, `<p class=errorDisplay>`+html.EscapeString(errormsg))
 	}
 
