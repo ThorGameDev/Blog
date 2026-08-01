@@ -15,7 +15,6 @@ func main() {
 	}
 	defer db.Close()
 
-
 	auth.Register()
 	accountpage.Register()
 	blogpage.Register()

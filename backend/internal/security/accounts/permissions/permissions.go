@@ -10,13 +10,13 @@ import (
 )
 
 const (
-	ReadOnly = 0
-	User = 1
+	ReadOnly    = 0
+	User        = 1
 	EarlyAccess = 2
-	Bonus = 3
-	VIP = 4
-	Trusted = 5
-	Owner = 6	
+	Bonus       = 3
+	VIP         = 4
+	Trusted     = 5
+	Owner       = 6
 )
 
 func PermissionLevel(sessionID string) (int, error) {

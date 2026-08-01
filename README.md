@@ -10,10 +10,11 @@ The current stage is to migrate my existing work over to this new Docker + Go ar
 - Go backend
 - Docker Build caching
 - Simple user accounts
+- SQL page management
+- Simple Bilingual page translation system
 
 ## Planned Features (Roughly in planned order)
 - User accounts
-- SQL page management
 - Comment threads
 - AB testing system
 - Bilingual English 日本語 page translations

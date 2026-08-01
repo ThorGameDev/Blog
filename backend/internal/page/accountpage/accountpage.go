@@ -12,7 +12,6 @@ import (
 	"blogbackend/internal/security/whitelist"
 )
 
-
 func accountPage(w http.ResponseWriter, req *http.Request, url string) {
 	page, err := retrieve.RetrievePage(url)
 	if err != nil {

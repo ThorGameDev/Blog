@@ -1,16 +1,16 @@
 <!DOCTYPE html>
 <html lang="{{ .LangCode }}">
-    <head>
-        <title>Blog: {{ .PageTitle }}</title>
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="/style/site.css">
-        {{  .AdditionalTags  }}
-    </head>
-    <body>
-        <h1>{{ .PageTitle }}</h1>
-        <a href="/login.html?from={{ .PageURL }}">Login</a>
-        <a href="/signup.html?from={{ .PageURL }}">Sign Up</a>
-        {{ .Content }}
-        {{ .LangRedirects }}
-    </body>
+	<head>
+		<title>Blog: {{ .PageTitle }}</title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="/style/site.css">
+		{{  .AdditionalTags  }}
+	</head>
+	<body>
+		<h1>{{ .PageTitle }}</h1>
+		<a href="/login.html?from={{ .PageURL }}">Login</a>
+		<a href="/signup.html?from={{ .PageURL }}">Sign Up</a>
+		{{ .Content }}
+		{{ .LangRedirects }}
+	</body>
 </html>

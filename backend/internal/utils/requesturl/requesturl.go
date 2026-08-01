@@ -13,4 +13,3 @@ func GetRequestURL(req *http.Request) string {
 	}
 	return fmt.Sprintf("%s://%s", urlscheme, req.Host)
 }
-
