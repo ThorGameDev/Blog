@@ -1,7 +1,7 @@
 CREATE TABLE users (
     uid SERIAL,
     username VARCHAR(32) NOT NULL,
-    pash VARCHAR(60) NOT NULL,
+    password_hash VARCHAR(60) NOT NULL,
     pfp_file_id VARCHAR(32) NOT NULL,
     privilege SMALLINT NOT NULL,
     PRIMARY KEY (uid)
@@ -17,58 +17,86 @@ CREATE TABLE sessions (
     PRIMARY KEY (session_token)
 );
 
-CREATE TABLE pages (
-    pageid SERIAL,
-    PRIMARY KEY (pageid)
-);
-INSERT INTO pages (pageid) VALUES (1);
 
 CREATE TABLE languages (
-    langcode VARCHAR(2) NOT NULL,
-    langname VARCHAR(32) NOT NULL,
-    pagetags TEXT NOT NULL,
-    urlbase VARCHAR(32) NOT NULL,
-    PRIMARY KEY (langcode)
+    lang_code VARCHAR(2) NOT NULL,
+    lang_name VARCHAR(32) NOT NULL,
+    page_tags TEXT NOT NULL,
+    PRIMARY KEY (lang_code)
 );
 INSERT INTO languages VALUES
-('en', 'English', '', '/en/blog/'),
+('en', 'English', ''),
 (
     'ja',
     '日本語',
-    '<meta name="robots" content="noindex, follow">',
-    '/ja/ブログ/'
+    '<meta name="robots" content="noindex, follow">'
 );
+
+CREATE TABLE page_type (
+    page_type_id SERIAL,
+    type_name VARCHAR(64) NOT NULL,
+    substitution_types JSONB NOT NULL,
+    template_url VARCHAR(64) NOT NULL,
+    PRIMARY KEY (page_type_id)
+);
+INSERT INTO page_type (
+    page_type_id, type_name, substitution_types, template_url
+) VALUES
+(
+    1,
+    'Blogpage',
+    '
+    {
+        "PageURL": "URL", 
+        "LangCode": "LangCode", 
+        "PageTitle": "Text", 
+        "LangTags": "LangTags",
+        "Content": "Text",
+        "LangRedirects": "LangRedirects"
+    }
+    '::JSONB,
+    'http://nginx-frontend:8080/templates/blogpage.html'
+);
+
+CREATE TABLE pages (
+    page_id SERIAL,
+    page_type_id INT NOT NULL,
+    FOREIGN KEY (page_type_id) REFERENCES page_type(page_type_id),
+    PRIMARY KEY (page_id)
+);
+INSERT INTO pages (page_id, page_type_id) VALUES (1, 1);
+
 
 CREATE TABLE translations (
-    translationid SERIAL,
-    pageid INT NOT NULL,
-    langcode VARCHAR(2) NOT NULL,
-    title VARCHAR(64) NOT NULL,
+    translation_id SERIAL,
+    page_id INT NOT NULL,
+    lang_code VARCHAR(2) NOT NULL,
+    substitutions JSONB NOT NULL,
     url VARCHAR(32) NOT NULL,
-    UNIQUE (pageid, langcode),
+    UNIQUE (page_id, lang_code),
     UNIQUE (url),
-    FOREIGN KEY (pageid) REFERENCES pages(pageid),
-    FOREIGN KEY (langcode) REFERENCES languages(langcode),
-    PRIMARY KEY (translationid)
+    FOREIGN KEY (page_id) REFERENCES pages(page_id),
+    FOREIGN KEY (lang_code) REFERENCES languages(lang_code),
+    PRIMARY KEY (translation_id)
 );
-INSERT INTO translations (pageid, langcode, title, url) VALUES
-(1, 'en', 'Page 1', 'page1.html'),
-(1, 'ja', 'ページ１', 'パージ１.html');
+INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
+(1, 'en', '{ "PageTitle": "Page 1" }'::JSONB, '/blog/page1.html'),
+(1, 'ja', '{ "PageTitle": "ページ１" }'::JSONB, '/ブログ/パージ１.html');
 
-CREATE TABLE content (
-    testid VARCHAR(2) NOT NULL,
-    translationid INT NOT NULL,
-    content TEXT NOT NULL,
-    FOREIGN KEY (translationid) REFERENCES translations(translationid),
-    PRIMARY KEY (testid, translationid)
+CREATE TABLE tests (
+    test_id VARCHAR(2) NOT NULL,
+    translation_id INT NOT NULL,
+    test_substitutions JSONB NOT NULL,
+    FOREIGN KEY (translation_id) REFERENCES translations(translation_id),
+    PRIMARY KEY (test_id, translation_id)
 );
 
-CREATE INDEX idx_content_translationid ON content (translationid);
+CREATE INDEX idx_test_translationid ON tests (translation_id);
 
-INSERT INTO content (testid, translationid, content) VALUES
-('aa', 1, 'Hello world! Welcome to page 1!'),
-('ab', 1, 'Hello World! Welcome to Page 1!'),
-('ba', 1, 'Hello world!!! Welcome to page 1!!!'),
-('bb', 1, 'Hello World!!! Welcome to Page 1!!!'),
-('aa', 2, 'ハローワールド！ページ１えようこそ！'),
-('ab', 2, 'こんいちわ世界！ページ１えようこそ！');
+INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
+('aa', 1, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
+('ab', 1, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
+('ba', 1, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
+('bb', 1, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB),
+('aa', 2, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
+('ab', 2, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);

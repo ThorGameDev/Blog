@@ -34,16 +34,16 @@ func accountPage(w http.ResponseWriter, req *http.Request, url string) {
 }
 
 func signupPage(w http.ResponseWriter, req *http.Request) {
-	url := "http://nginx-frontend:8080/signup.html"
+	url := "http://nginx-frontend:8080/templates/signup.html"
 	accountPage(w, req, url)
 }
 
 func loginPage(w http.ResponseWriter, req *http.Request) {
-	url := "http://nginx-frontend:8080/login.html"
+	url := "http://nginx-frontend:8080/templates/login.html"
 	accountPage(w, req, url)
 }
 
 func Register() {
-	http.HandleFunc("/login.html", loginPage)
-	http.HandleFunc("/signup.html", signupPage)
+	http.HandleFunc("/en/login.html", loginPage)
+	http.HandleFunc("/en/signup.html", signupPage)
 }
