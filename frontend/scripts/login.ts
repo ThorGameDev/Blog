@@ -9,7 +9,7 @@ async function sendLogin(): Promise<void> {
     }
 
     const formData: FormData = new FormData(form);
-    formData.set("hasjs", "1");
+    formData.set("hasJS", "1");
     const dataURL = new URLSearchParams(formData as any);
     try {
         const response = await fetch("api/security/login", {

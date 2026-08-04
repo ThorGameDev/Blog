@@ -1,21 +1,23 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ LangCode }}">
     <head>
-        <title>Blog</title>
+        <title>Blog: {{ PageTitle }}</title>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="/style/site.css">
+		{{ LangTags }}
     </head>
     <body>
-        <h1>Sign Up</h1>
-        <p id=errorDisplay></p>
-        <form action="/api/security/signup" method="post" id="signupForm">
-            <input type="text" id="username" name="username" placeholder="Username">
-            <input type="password" id="password" name="password" placeholder="Password">
-            <input type="password" id="confirmPass" name="confirmPass" placeholder="Confirm Pass">
-            <input type="hidden" id="from" name="from" value="/index.html">
-            <button type="submit">Submit</button>
+        <h1>{{ PageTitle }}</h1>
+        <p id=errorDisplay>{{ Errors }}</p>
+        <form action="/api/security/signup?lang={{ LangCode }}" method="post" id="signupForm">
+            <input type="text" id="username" name="username" placeholder="{{ UsernamePrompt }}">
+            <input type="password" id="password" name="password" placeholder="{{ PasswordPrompt }}">
+            <input type="password" id="confirmPass" name="confirmPass" placeholder="{{ ConfirmPassPrompt }}">
+            <input type="hidden" id="from" name="from" value="{{ ReturnURL }}">
+            <button type="submit">{{ SubmitPrompt }}</button>
         </form>
-        <p>Already have an account? <a href="/login.html?from=/index.html">Login</a> instead.</p>
+        <p>{{ SwitchPrompt }}</p>
+        {{ LangRedirects }}
         <script src="/scripts/signup.js"></script>
     </body>
 </html>

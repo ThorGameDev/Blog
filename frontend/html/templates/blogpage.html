@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="{{ .LangCode }}">
+<html lang="{{ LangCode }}">
 	<head>
-		<title>Blog: {{ .PageTitle }}</title>
+        <title>Blog: {{ PageTitle }}</title>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" href="/style/site.css">
-		{{  .LangTags  }}
+		{{ LangTags }}
 	</head>
 	<body>
-		<h1>{{ .PageTitle }}</h1>
-		<a href="/login.html?from={{ .PageURL }}">Login</a>
-		<a href="/signup.html?from={{ .PageURL }}">Sign Up</a>
-		{{ .Content }}
-		{{ .LangRedirects }}
+        <h1>{{ PageTitle }}</h1>
+        <a href="/en/login.html?from={{ PageURL }}">Login</a>
+        <a href="/en/signup.html?from={{ PageURL }}">Sign Up</a>
+        {{ Content }}
+        {{ LangRedirects }}
 	</body>
 </html>

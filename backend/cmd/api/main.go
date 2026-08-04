@@ -5,8 +5,6 @@ import (
 
 	"blogbackend/internal/db"
 	"blogbackend/internal/page"
-	"blogbackend/internal/page/accountpage"
-	//"blogbackend/internal/page/blogpage"
 	"blogbackend/internal/security/accounts/auth"
 )
 
@@ -17,7 +15,6 @@ func main() {
 	defer db.Close()
 
 	auth.Register()
-	accountpage.Register()
 	page.Register()
 
 	http.ListenAndServe(":8090", nil)

@@ -2,7 +2,7 @@ package auth
 
 import (
 	"blogbackend/internal/db"
-	"blogbackend/internal/page/accountpage/errorcode"
+	"blogbackend/internal/page/errorcode"
 	"blogbackend/internal/security/whitelist"
 	"context"
 	"crypto/rand"
@@ -21,7 +21,7 @@ import (
 func loginTo(w http.ResponseWriter, username string, password string) error {
 	var pash string
 	var uid int
-	err := db.Pool.QueryRow(context.Background(), "SELECT pash, uid FROM users WHERE username = $1", username).Scan(&pash, &uid)
+	err := db.Pool.QueryRow(context.Background(), "SELECT password_hash, uid FROM users WHERE username = $1", username).Scan(&pash, &uid)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return errors.New(errorcode.IncorrectUsername)
@@ -36,11 +36,11 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 	}
 
 	// Login good, proceed to setting session
-	randbytes := make([]byte, 32)
-	if _, err := rand.Read(randbytes); err != nil {
+	randBytes := make([]byte, 32)
+	if _, err := rand.Read(randBytes); err != nil {
 		return errors.New("")
 	}
-	cookie := base64.URLEncoding.EncodeToString(randbytes)
+	cookie := base64.URLEncoding.EncodeToString(randBytes)
 
 	expireDate := time.Now().Add(time.Hour * 24) // Expires cookie after a day of neglect
 
@@ -91,7 +91,7 @@ func createAccount(w http.ResponseWriter, username string, password string, conf
 	}
 
 	status, err := db.Pool.Exec(context.Background(),
-		"INSERT INTO users (username, pash, pfp_file_id, privilege) VALUES ($1, $2, 'file', 0)",
+		"INSERT INTO users (username, password_hash, pfp_file_id, privilege) VALUES ($1, $2, 'file', 0)",
 		username, string(pash))
 	if err != nil {
 		slog.Error("Failed to create account! ", "err", err)
@@ -120,22 +120,22 @@ func login(w http.ResponseWriter, req *http.Request) {
 
 	username := req.PostForm.Get("username")
 	password := req.PostForm.Get("password")
-	fromurl := whitelist.SanitizeURL(req.PostForm.Get("from"))
-	hasjs := req.PostForm.Get("hasjs")
+	fromURL := whitelist.SanitizeURL(req.PostForm.Get("from"))
+	hasJS := req.PostForm.Get("hasJS")
 
 	err = loginTo(w, username, password)
 	if err != nil {
-		if hasjs == "1" {
-			errmsg := errorcode.CodeToMessage(err.Error())
-			fmt.Fprintf(w, "%s", errmsg)
+		if hasJS == "1" {
+			errMsg := errorcode.CodeToMessage(err.Error())
+			fmt.Fprintf(w, "%s", errMsg)
 		} else {
-			errmsg := url.QueryEscape(err.Error())
-			http.Redirect(w, req, "/login.html?from="+fromurl+"&err="+errmsg, http.StatusSeeOther)
+			errMsg := url.QueryEscape(err.Error())
+			http.Redirect(w, req, "/en/login.html?from="+fromURL+"&err="+errMsg, http.StatusSeeOther)
 		}
 		return
 	}
 
-	http.Redirect(w, req, fromurl, http.StatusSeeOther)
+	http.Redirect(w, req, fromURL, http.StatusSeeOther)
 }
 
 func signup(w http.ResponseWriter, req *http.Request) {
@@ -152,23 +152,23 @@ func signup(w http.ResponseWriter, req *http.Request) {
 
 	username := req.PostForm.Get("username")
 	password := req.PostForm.Get("password")
-	fromurl := whitelist.SanitizeURL(req.PostForm.Get("from"))
+	fromURL := whitelist.SanitizeURL(req.PostForm.Get("from"))
 	confirmPass := req.PostForm.Get("confirmPass")
-	hasjs := req.PostForm.Get("hasjs")
+	hasJS := req.PostForm.Get("hasJS")
 
 	err = createAccount(w, username, password, confirmPass)
 	if err != nil {
-		if hasjs == "1" {
-			errmsg := errorcode.CodeToMessage(err.Error())
-			fmt.Fprintf(w, "%s", errmsg)
+		if hasJS == "1" {
+			errMsg := errorcode.CodeToMessage(err.Error())
+			fmt.Fprintf(w, "%s", errMsg)
 		} else {
-			errmsg := url.QueryEscape(err.Error())
-			http.Redirect(w, req, "/signup.html?from="+fromurl+"&err="+errmsg, http.StatusSeeOther)
+			errMsg := url.QueryEscape(err.Error())
+			http.Redirect(w, req, "/en/signup.html?from="+fromURL+"&err="+errMsg, http.StatusSeeOther)
 		}
 		return
 	}
 
-	http.Redirect(w, req, fromurl, http.StatusSeeOther)
+	http.Redirect(w, req, fromURL, http.StatusSeeOther)
 }
 
 func Register() {

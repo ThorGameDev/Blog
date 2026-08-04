@@ -2,16 +2,19 @@ package page
 
 import (
 	"blogbackend/internal/db"
+	"blogbackend/internal/page/errorcode"
 	"blogbackend/internal/page/retrieve"
+	"blogbackend/internal/security/whitelist"
 	"blogbackend/internal/utils/requesturl"
 	"context"
 	"fmt"
-	"text/template"
+	"html"
 	"log/slog"
 	"net/http"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
+	"github.com/valyala/fasttemplate"
 )
 
 type langURL struct {
@@ -56,7 +59,7 @@ func nameLangCode(langCode string) (string, error) {
 func getLangTags(domainURL string, currentLangCode string, alternatePages []langURL) (string, error) {
 	var langTagCluster strings.Builder
 	for _, val := range alternatePages {
-		fmt.Fprintf(&langTagCluster, `<link rel="alternate" hreflang="%s" href="%s/%s%s">`, currentLangCode, domainURL, val.langCode, val.url)
+		fmt.Fprintf(&langTagCluster, `<link rel="alternate" hreflang="%s" href="%s/%s%s">`, val.langCode, domainURL, val.langCode, val.url)
 	}
 
 	var langTags string
@@ -84,16 +87,13 @@ func getLangLinks(currentLangCode string, alternatePages []langURL) (string, err
 }
 
 func pageGen(w http.ResponseWriter, req *http.Request) {
+	slog.Info("PageGen!")
 	domainURL := requesturl.GetRequestURL(req)
-	slog.Info(domainURL)
 
 	fullPageURL := req.URL.Path
-	slog.Info(fullPageURL)
 	langCode := fullPageURL[1:3]
-	slog.Info(langCode)
 	pageURL := fullPageURL[3:]
-	slog.Info(pageURL)
-
+	slog.Info("url", "langCode", langCode, "pageURL", pageURL, "fullPageURL", fullPageURL, "domainURL", domainURL)
 
 	// Get page typeset
 	var substitutionTypes map[string]string
@@ -111,6 +111,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Could not find page in SQL", http.StatusNotFound)
 		return
 	}
+	slog.Info("GetSubs")
 
 	// Get substitutions
 	var baseSubstitutions map[string]string
@@ -128,10 +129,13 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	slog.Info("listAltURLs")
 	altURLs, err := getAlternateURLs(langURL{langCode, pageURL})
 
-	finalSubstitutions := make(map[string]string)
+	slog.Info("CreateFinalSubs")
+	finalSubstitutions := make(map[string]interface{})
 	for key, val := range substitutionTypes {
+		slog.Info("Calculating Key", "key", key, "type", val)
 		switch val {
 		case "URL":
 			finalSubstitutions[key] = fullPageURL
@@ -153,7 +157,18 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 			finalSubstitutions[key] = langLinks
-		case "Text":
+		case "Errors":
+			errorURL := req.URL.Query().Get("err")
+			if errorURL != "" {
+				errorMessage := errorcode.CodeToMessage(errorURL)
+				finalSubstitutions[key] = html.EscapeString(errorMessage)
+			} else {
+				finalSubstitutions[key] = ""
+			}
+		case "ReturnURL":
+			returnURL := whitelist.SanitizeURL(req.URL.Query().Get("from"))
+			finalSubstitutions[key] = html.EscapeString(returnURL)
+		case "Text", "TemplateText":
 			if substitutionValue, ok := testSubstitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
 			} else if substitutionValue, ok := baseSubstitutions[key]; ok {
@@ -164,7 +179,21 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
-	
+
+	// Resolve template texts
+	for key, val := range substitutionTypes {
+		if val == "TemplateText" {
+			slog.Info("Substitution: ", "val", finalSubstitutions[key])
+			subTemplate := fasttemplate.New(finalSubstitutions[key].(string), "{{ ", " }}")
+			finalSubstitutions[key] = subTemplate.ExecuteString(finalSubstitutions)
+			slog.Info("Substitution: ", "val", finalSubstitutions[key])
+		}
+	}
+
+	slog.Info("substitutions", "types", substitutionTypes, "baseSubstitutions", baseSubstitutions, "testSubstitutions", testSubstitutions)
+	slog.Info("Final", "finalSubstitutions", finalSubstitutions)
+	slog.Info("Getting page")
+
 	// Get base page
 	pageData, err := retrieve.RetrievePage(templateUrl)
 	if err != nil {
@@ -174,16 +203,13 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Parse base page as html template
-	pageTemplate, err := template.New(pageURL).Parse(pageData)
-	if err != nil {
-		slog.Error("Could not parse HTML template", "err", err)
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	//pageTemplate, err := template.New(pageURL).Parse(pageData)
+	pageTemplate := fasttemplate.New(pageData, "{{ ", " }}")
+	htmlData := pageTemplate.ExecuteString(finalSubstitutions)
 
-	// Insert data
+	// Return
 	w.Header().Set("Content-Type", "text/html")
-	pageTemplate.Execute(w, finalSubstitutions)
+	fmt.Fprint(w, htmlData)
 }
 
 // Implement a bad URL redirect
@@ -206,6 +232,6 @@ func Register() {
 		if err := rows.Scan(&retrieved); err != nil {
 			slog.Error("Critical Error!", "err", err)
 		}
-		http.HandleFunc("/" + retrieved + "/", pageGen)
+		http.HandleFunc("/"+retrieved+"/", pageGen)
 	}
 }

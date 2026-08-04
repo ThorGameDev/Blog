@@ -44,7 +44,46 @@ INSERT INTO page_type (
 ) VALUES
 (
     1,
-    'Blogpage',
+    'LoginPage',
+    '
+    {
+        "LangCode": "LangCode", 
+        "PageTitle": "Text", 
+        "LangTags": "LangTags",
+        "Errors": "Errors",
+        "UsernamePrompt": "Text", 
+        "PasswordPrompt": "Text", 
+        "ReturnURL": "ReturnURL",
+        "SubmitPrompt": "Text",
+        "LangRedirects": "LangRedirects",
+        "SwitchPrompt": "TemplateText"
+    }
+    '::JSONB,
+    'http://nginx-frontend:8080/templates/login.html'
+),
+(
+    2,
+    'SignupPage',
+    '
+    {
+        "LangCode": "LangCode", 
+        "PageTitle": "Text", 
+        "LangTags": "LangTags",
+        "Errors": "Errors",
+        "UsernamePrompt": "Text", 
+        "PasswordPrompt": "Text", 
+        "ConfirmPassPrompt": "Text", 
+        "ReturnURL": "ReturnURL",
+        "SubmitPrompt": "Text",
+        "LangRedirects": "LangRedirects",
+        "SwitchPrompt": "TemplateText"
+    }
+    '::JSONB,
+    'http://nginx-frontend:8080/templates/signup.html'
+),
+(
+    3,
+    'BlogPage',
     '
     {
         "PageURL": "URL", 
@@ -64,7 +103,7 @@ CREATE TABLE pages (
     FOREIGN KEY (page_type_id) REFERENCES page_type(page_type_id),
     PRIMARY KEY (page_id)
 );
-INSERT INTO pages (page_id, page_type_id) VALUES (1, 1);
+INSERT INTO pages (page_id, page_type_id) VALUES (1, 1), (2, 2), (3, 3);
 
 
 CREATE TABLE translations (
@@ -80,8 +119,12 @@ CREATE TABLE translations (
     PRIMARY KEY (translation_id)
 );
 INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
-(1, 'en', '{ "PageTitle": "Page 1" }'::JSONB, '/blog/page1.html'),
-(1, 'ja', '{ "PageTitle": "ページ１" }'::JSONB, '/ブログ/パージ１.html');
+(1, 'en', '{ "PageTitle": "Login" }'::JSONB, '/login.html'),
+(1, 'ja', '{ "PageTitle": "ログイン" }'::JSONB, '/ログイン.html'),
+(2, 'en', '{ "PageTitle": "Signup" }'::JSONB, '/signup.html'),
+(2, 'ja', '{ "PageTitle": "登録" }'::JSONB, '/とうろく.html'),
+(3, 'en', '{ "PageTitle": "Page 1" }'::JSONB, '/blog/page1.html'),
+(3, 'ja', '{ "PageTitle": "ページ１" }'::JSONB, '/ブログ/パージ１.html');
 
 CREATE TABLE tests (
     test_id VARCHAR(2) NOT NULL,
@@ -94,9 +137,59 @@ CREATE TABLE tests (
 CREATE INDEX idx_test_translationid ON tests (translation_id);
 
 INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
-('aa', 1, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
-('ab', 1, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
-('ba', 1, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
-('bb', 1, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB),
-('aa', 2, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
-('ab', 2, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);
+(
+    'aa',
+    1,
+    '
+    { 
+        "UsernamePrompt": "Username",
+        "PasswordPrompt": "Password",
+        "SubmitPrompt": "Submit",
+        "SwitchPrompt": "Don''t have an account? <a href=\"/en/signup.html?from={{ ReturnURL }}\">Sign Up</a> instead."
+    }
+    '::JSONB
+),
+(
+    'aa',
+    2,
+    '
+    { 
+        "UsernamePrompt": "ユーザー名",
+        "PasswordPrompt": "パスワード", 
+        "SubmitPrompt": "ログイン",
+        "SwitchPrompt": "アカウントをありませんならば、<a href=\"/ja/とうろく.html?from={{ ReturnURL }}\">登録</a>しませんか？"
+    }
+    '::JSONB
+),
+(
+    'aa',
+    3,
+    '
+    { 
+        "UsernamePrompt": "Username",
+        "PasswordPrompt": "Password",
+        "ConfirmPassPrompt": "Confirm Password",
+        "SubmitPrompt": "Submit",
+        "SwitchPrompt": "Already have an account? <a href=\"/en/login.html?from={{ ReturnURL }}\">Login</a> instead."
+    }
+    '::JSONB
+),
+(
+    'aa',
+    4,
+    '
+    { 
+        "UsernamePrompt": "ユーザー名",
+        "PasswordPrompt": "パスワード",
+        "ConfirmPassPrompt": "パスワード確認",
+        "SubmitPrompt": "登録",
+        "SwitchPrompt": "すでにアカウントをありますか？<a href=\"/ja/ログイン.html?from={{ ReturnURL }}\">ログイン</a>してください。"
+    }
+    '::JSONB
+),
+('aa', 5, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
+('ab', 5, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
+('ba', 5, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
+('bb', 5, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB),
+('aa', 6, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
+('ab', 6, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);

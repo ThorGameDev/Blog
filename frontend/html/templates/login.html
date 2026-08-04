@@ -1,20 +1,22 @@
 <!DOCTYPE html>
-<html>
+<html lang="{{ LangCode }}">
     <head>
-        <title>Blog</title>
+        <title>Blog: {{ PageTitle }}</title>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="/style/site.css">
+		{{ LangTags }}
     </head>
     <body>
-        <h1>{{ .Login }}</h1>
-        <p id=errorDisplay>{{ .Errors }}</p>
-        <form action="/api/security/login" method="post" id="signupForm">
-            <input type="text" id="username" name="username" placeholder="{{ .UsernamePrompt }}">
-            <input type="password" id="password" name="password" placeholder="{{ .PasswordPrompt }}">
-            <input type="hidden" id="from" name="from" value="{{ .ReturnURL }}">
-            <button type="submit">Submit</button>
+        <h1>{{ PageTitle }}</h1>
+        <p id=errorDisplay>{{ Errors }}</p>
+        <form action="/api/security/login?lang={{ LangCode }}" method="post" id="signupForm">
+            <input type="text" id="username" name="username" placeholder="{{ UsernamePrompt }}">
+            <input type="password" id="password" name="password" placeholder="{{ PasswordPrompt }}">
+            <input type="hidden" id="from" name="from" value="{{ ReturnURL }}">
+            <button type="submit">{{ SubmitPrompt }}</button>
         </form>
-        <p>Don't have an account? <a href="/signup.html?from={{ .ReturnURL }}">Sign Up</a> instead.</p>
+        <p>{{ SwitchPrompt }}</p>
+        {{ LangRedirects }}
         <script src="/scripts/login.js"></script>
     </body>
 </html>

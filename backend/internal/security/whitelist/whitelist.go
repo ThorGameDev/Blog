@@ -3,32 +3,36 @@ package whitelist
 import (
 	"blogbackend/internal/db"
 	"context"
+	"errors"
 	"log/slog"
-	"path"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func SanitizeURL(rawURL string) string {
-	validURLs := map[string]bool{
-		"/index.html":   true,
-		"/admin.html":   true,
-		"/account.html": true,
+	// Make sure URL is long enough to contain a langCode
+	if len(rawURL) <= 4 {
+		return "/index.html"
 	}
-	if validURLs[rawURL] {
-		return rawURL
-	}
-	pagepath, pageurl := path.Split(rawURL)
 
+	// Split url into code and location
+	langCode := rawURL[1:3]
+	pageURL := rawURL[3:]
+
+	// Check if page exists in website
 	var exists bool
 	err := db.Pool.QueryRow(context.Background(),
 		`SELECT EXISTS(
 			SELECT 1 FROM translations, languages
-			WHERE languages.langcode = translations.langcode
-			AND urlbase = $1
+			WHERE languages.lang_code = translations.lang_code
+			AND languages.lang_code = $1
 			AND url = $2
 		)`,
-		pagepath, pageurl).Scan(&exists)
+		langCode, pageURL).Scan(&exists)
 	if err != nil {
-		slog.Error("Failed to check the existence of the URL. ", "err", err)
+		if !errors.Is(err, pgx.ErrNoRows) {
+			slog.Error("Failed to check the existence of the URL. ", "err", err)
+		}
 		return "/index.html"
 	}
 	if exists {
