@@ -12,12 +12,13 @@ The current stage is to migrate my existing work over to this new Docker + Go ar
 - Simple user accounts
 - SQL page management
 - Simple Bilingual page translation system
+- Bilingual English 日本語 page translations
 
 ## Planned Features (Roughly in planned order)
+- Bilingual English 日本語 full translations
 - User accounts
 - Comment threads
 - AB testing system
-- Bilingual English 日本語 page translations
 - A half decent looking fronted
 - Selfhost with a domain and HTTPS
 

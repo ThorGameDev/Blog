@@ -1,25 +1,41 @@
 package errorcode
 
-const (
-	AccountExists      = "a"
-	UnmatchedPasswords = "b"
-	IncorrectUsername  = "c"
-	IncorrectPassword  = "d"
-	InternalSqlError   = "e"
-	InternalError      = "f"
+import (
+	"blogbackend/internal/db"
+	"context"
+	"errors"
+	"log/slog"
+
+	"github.com/jackc/pgx/v5"
 )
 
-func CodeToMessage(errID string) string {
-	errMap := map[string]string{
-		AccountExists:      "That account already exists!",
-		UnmatchedPasswords: "The passwords do not match!",
-		IncorrectUsername:  "Incorrect username!",
-		IncorrectPassword:  "Incorrect password!",
-		InternalSqlError:   "Internal Server Error: Running SQL query failed!",
-		InternalError:      "Internal Server Error",
+const (
+	AccountExists      = "AccExs"
+	UnmatchedPasswords = "UmtchP"
+	IncorrectUsername  = "UWrong"
+	IncorrectPassword  = "PWrong"
+	InternalError      = "IntErr"
+)
+
+func CodeToMessage(errID string, langCode string) string {
+	var errMsg string
+	err := db.Pool.QueryRow(context.Background(), 
+		`SELECT content FROM error_codes
+			WHERE code_id = $1
+			AND lang_code = $2`,
+		errID, langCode).Scan(&errMsg)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) && langCode != "en" {
+			// If there is no translation for that error, return the untranslated error translation
+			return CodeToMessage(errID, "en")
+		} else if errors.Is(err, pgx.ErrNoRows) { 
+			// If the error doesn't exist, even in English, complain
+			return "Unknown error"
+		} else {
+			// If there is a weird sql error, log it
+			slog.Error("Problem while finding translation for error code", "err", err)
+			return "Unknown error"
+		}
 	}
-	if _, ok := errMap[errID]; ok {
-		return errMap[errID]
-	}
-	return "Unknown error"
+	return errMsg	
 }

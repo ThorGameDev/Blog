@@ -18,7 +18,7 @@ async function sendSignup(): Promise<void> {
     formData.set("hasJS", "1");
     const dataURL = new URLSearchParams(formData as any);
     try {
-        const response = await fetch("api/security/signup", {
+        const response = await fetch(form.action, {
             method: "POST",
             body: dataURL
         }) ;

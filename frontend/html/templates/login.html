@@ -9,7 +9,7 @@
     <body>
         <h1>{{ PageTitle }}</h1>
         <p id=errorDisplay>{{ Errors }}</p>
-        <form action="/api/security/login?lang={{ LangCode }}" method="post" id="signupForm">
+        <form action="/api/security/login?lang={{ LangCode }}" method="post" id="loginForm">
             <input type="text" id="username" name="username" placeholder="{{ UsernamePrompt }}">
             <input type="password" id="password" name="password" placeholder="{{ PasswordPrompt }}">
             <input type="hidden" id="from" name="from" value="{{ ReturnURL }}">
@@ -17,6 +17,5 @@
         </form>
         <p>{{ SwitchPrompt }}</p>
         {{ LangRedirects }}
-        <script src="/scripts/login.js"></script>
     </body>
 </html>

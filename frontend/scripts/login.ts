@@ -1,7 +1,7 @@
 import { err } from "./lib/utils.ts"
 
 const password: HTMLInputElement | null = document.getElementById("password") as HTMLInputElement | null;
-const form: HTMLFormElement | null = document.getElementById("signupForm") as HTMLFormElement | null;
+const form: HTMLFormElement | null = document.getElementById("loginForm") as HTMLFormElement | null;
 
 async function sendLogin(): Promise<void> {
     if (!password || !form) {
@@ -12,7 +12,7 @@ async function sendLogin(): Promise<void> {
     formData.set("hasJS", "1");
     const dataURL = new URLSearchParams(formData as any);
     try {
-        const response = await fetch("api/security/login", {
+        const response = await fetch(form.action, {
             method: "POST",
             body: dataURL
         }) ;

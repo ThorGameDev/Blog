@@ -4,6 +4,7 @@ import (
 	"blogbackend/internal/db"
 	"blogbackend/internal/page/errorcode"
 	"blogbackend/internal/security/whitelist"
+	"blogbackend/internal/utils/requesturl"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -27,7 +28,7 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 			return errors.New(errorcode.IncorrectUsername)
 		} else {
 			slog.Error("Failed to check the existence of the account. ", "err", err)
-			return errors.New(errorcode.InternalSqlError)
+			return errors.New(errorcode.InternalError)
 		}
 	}
 
@@ -49,11 +50,11 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 		cookie, uid, expireDate)
 	if err != nil {
 		slog.Error("Failed to create account! ", "err", err)
-		return errors.New(errorcode.InternalSqlError)
+		return errors.New(errorcode.InternalError)
 	}
 	if status.RowsAffected() != 1 {
 		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
-		return errors.New(errorcode.InternalSqlError)
+		return errors.New(errorcode.InternalError)
 	}
 
 	sessionCookie := &http.Cookie{
@@ -78,7 +79,7 @@ func createAccount(w http.ResponseWriter, username string, password string, conf
 	err := db.Pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", username).Scan(&exists)
 	if err != nil {
 		slog.Error("Failed to check the existence of the account. ", "err", err)
-		return errors.New(errorcode.InternalSqlError)
+		return errors.New(errorcode.InternalError)
 	}
 	if exists {
 		return errors.New(errorcode.AccountExists)
@@ -95,12 +96,12 @@ func createAccount(w http.ResponseWriter, username string, password string, conf
 		username, string(pash))
 	if err != nil {
 		slog.Error("Failed to create account! ", "err", err)
-		return errors.New(errorcode.InternalSqlError)
+		return errors.New(errorcode.InternalError)
 	}
 
 	if status.RowsAffected() != 1 {
 		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
-		return errors.New(errorcode.InternalSqlError)
+		return errors.New(errorcode.InternalError)
 	}
 
 	return loginTo(w, username, password)
@@ -122,15 +123,22 @@ func login(w http.ResponseWriter, req *http.Request) {
 	password := req.PostForm.Get("password")
 	fromURL := whitelist.SanitizeURL(req.PostForm.Get("from"))
 	hasJS := req.PostForm.Get("hasJS")
+	currentTranslation := req.URL.Query().Get("lang")
+	if currentTranslation == "" {
+		currentTranslation = "en"
+	}
 
 	err = loginTo(w, username, password)
 	if err != nil {
 		if hasJS == "1" {
-			errMsg := errorcode.CodeToMessage(err.Error())
+			errMsg := errorcode.CodeToMessage(err.Error(), currentTranslation)
 			fmt.Fprintf(w, "%s", errMsg)
 		} else {
-			errMsg := url.QueryEscape(err.Error())
-			http.Redirect(w, req, "/en/login.html?from="+fromURL+"&err="+errMsg, http.StatusSeeOther)
+			params := url.Values{}
+			params.Add("err", err.Error())
+			params.Add("from", fromURL)
+			translatedURL := requesturl.TranslateURL("/en/login.html", params, currentTranslation)
+			http.Redirect(w, req, translatedURL, http.StatusSeeOther)
 		}
 		return
 	}
@@ -155,15 +163,22 @@ func signup(w http.ResponseWriter, req *http.Request) {
 	fromURL := whitelist.SanitizeURL(req.PostForm.Get("from"))
 	confirmPass := req.PostForm.Get("confirmPass")
 	hasJS := req.PostForm.Get("hasJS")
+	currentTranslation := req.URL.Query().Get("lang")
+	if currentTranslation == "" {
+		currentTranslation = "en"
+	}
 
 	err = createAccount(w, username, password, confirmPass)
 	if err != nil {
 		if hasJS == "1" {
-			errMsg := errorcode.CodeToMessage(err.Error())
+			errMsg := errorcode.CodeToMessage(err.Error(), currentTranslation)
 			fmt.Fprintf(w, "%s", errMsg)
 		} else {
-			errMsg := url.QueryEscape(err.Error())
-			http.Redirect(w, req, "/en/signup.html?from="+fromURL+"&err="+errMsg, http.StatusSeeOther)
+			params := url.Values{}
+			params.Add("err", err.Error())
+			params.Add("from", fromURL)
+			translatedURL := requesturl.TranslateURL("/en/signup.html", params, currentTranslation)
+			http.Redirect(w, req, translatedURL, http.StatusSeeOther)
 		}
 		return
 	}

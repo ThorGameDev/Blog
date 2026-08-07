@@ -7,59 +7,26 @@ import (
 	"blogbackend/internal/security/whitelist"
 	"blogbackend/internal/utils/requesturl"
 	"context"
+	"errors"
 	"fmt"
 	"html"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/valyala/fasttemplate"
 )
 
-type langURL struct {
-	langCode string
-	url      string
-}
-
-func getAlternateURLs(fromPage langURL) ([]langURL, error) {
-	rows, err := db.Pool.Query(context.Background(),
-		`SELECT lang_code, url FROM translations
-			WHERE page_id = (
-				SELECT page_id FROM translations 
-					WHERE lang_code = $1 AND url = $2
-			)`,
-		fromPage.langCode, fromPage.url,
-	)
-	if err != nil {
-		return nil, err
-	}
-	return pgx.CollectRows(
-		rows,
-		func(row pgx.CollectableRow) (langURL, error) {
-			var rowLangCode string
-			var rowURL string
-			err := row.Scan(&rowLangCode, &rowURL)
-			return langURL{rowLangCode, rowURL}, err
-		},
-	)
-}
-
-func nameLangCode(langCode string) (string, error) {
-	// This needs to be in sql, which is kinda awful considering it never changes
-	switch langCode {
-	case "en":
-		return "english", nil
-	case "ja":
-		return "日本語", nil
-	}
-	return "None", nil
-}
-
-func getLangTags(domainURL string, currentLangCode string, alternatePages []langURL) (string, error) {
+func getLangTags(domainURL string, currentLangCode string, alternatePages []requesturl.LangURL) (string, error) {
 	var langTagCluster strings.Builder
 	for _, val := range alternatePages {
-		fmt.Fprintf(&langTagCluster, `<link rel="alternate" hreflang="%s" href="%s/%s%s">`, val.langCode, domainURL, val.langCode, val.url)
+		toURL := domainURL + "/" + val.LangCode + val.PageURL
+		fmt.Fprintf(&langTagCluster, `<link rel="alternate" hreflang="%s" href="%s">`, val.LangCode, toURL)
+		if val.IsPrimary {
+			fmt.Fprintf(&langTagCluster, `<link rel="alternate" hreflang="x-default" href="%s">`, toURL)
+		}
 	}
 
 	var langTags string
@@ -72,28 +39,29 @@ func getLangTags(domainURL string, currentLangCode string, alternatePages []lang
 	return langTagCluster.String(), err
 }
 
-func getLangLinks(currentLangCode string, alternatePages []langURL) (string, error) {
+func getLangLinks(currentLangCode string, alternatePages []requesturl.LangURL) (string, error) {
 	var langLinks strings.Builder
 	for _, val := range alternatePages {
-		if currentLangCode != val.langCode {
-			langName, err := nameLangCode(val.langCode)
-			if err != nil {
-				return "", err
-			}
-			fmt.Fprintf(&langLinks, `<a rel="alternate" hreflang="%s" href="/%s%s">%s</a>`, val.langCode, val.langCode, val.url, langName)
+		if currentLangCode != val.LangCode {
+			toURL := "/" + val.LangCode + val.PageURL + val.QueryParams
+			fmt.Fprintf(&langLinks, `<a rel="alternate" hreflang="%s" href="%s">%s</a>`, val.LangCode, toURL, val.LangName)
 		}
 	}
 	return langLinks.String(), nil
 }
 
+func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
+	newURL := requesturl.TranslateURL("/##"+fromPage, queryParams, langCode)
+	http.Redirect(w, req, newURL, http.StatusPermanentRedirect)
+}
+
 func pageGen(w http.ResponseWriter, req *http.Request) {
-	slog.Info("PageGen!")
 	domainURL := requesturl.GetRequestURL(req)
 
 	fullPageURL := req.URL.Path
 	langCode := fullPageURL[1:3]
 	pageURL := fullPageURL[3:]
-	slog.Info("url", "langCode", langCode, "pageURL", pageURL, "fullPageURL", fullPageURL, "domainURL", domainURL)
+	queryParams := req.URL.Query()
 
 	// Get page typeset
 	var substitutionTypes map[string]string
@@ -107,11 +75,14 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			AND url = $2`,
 		langCode, pageURL).Scan(&substitutionTypes, &templateUrl)
 	if err != nil {
-		slog.Error("Could not find page in SQL", "err", err)
-		http.Error(w, "Could not find page in SQL", http.StatusNotFound)
+		if errors.Is(err, pgx.ErrNoRows) {
+			badURLRedirect(w, req, pageURL, queryParams, langCode)
+		} else {
+			slog.Error("Critical SQL error while searching for page", "err", err)
+			http.Error(w, "Could not find page in SQL", http.StatusNotFound)
+		}
 		return
 	}
-	slog.Info("GetSubs")
 
 	// Get substitutions
 	var baseSubstitutions map[string]string
@@ -124,21 +95,28 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			AND url = $2`,
 		langCode, pageURL).Scan(&baseSubstitutions, &testSubstitutions)
 	if err != nil {
-		slog.Error("Could not find page in SQL", "err", err)
+		if errors.Is(err, pgx.ErrNoRows) {
+			slog.Warn("No page content is available", "err", err)
+		} else {
+			slog.Error("Critical SQL error while getting page content", "err", err)
+		}
 		http.Error(w, "Could not find page in SQL", http.StatusNotFound)
 		return
 	}
 
-	slog.Info("listAltURLs")
-	altURLs, err := getAlternateURLs(langURL{langCode, pageURL})
+	altURLs, err := requesturl.GetAlternateURLs(pageURL, langCode, queryParams)
+	slog.Info("AltURLS:", "aaltURLs", altURLs)
+	if err != nil {
+		slog.Error("Failure getting alternate URLs!", "err", err)
+		http.Error(w, "Failure getting alternate URLs", http.StatusNotFound)
+		return
+	}
 
-	slog.Info("CreateFinalSubs")
 	finalSubstitutions := make(map[string]interface{})
 	for key, val := range substitutionTypes {
-		slog.Info("Calculating Key", "key", key, "type", val)
 		switch val {
 		case "URL":
-			finalSubstitutions[key] = fullPageURL
+			finalSubstitutions[key] = url.PathEscape(fullPageURL)
 		case "LangCode":
 			finalSubstitutions[key] = langCode
 		case "LangTags":
@@ -160,14 +138,15 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		case "Errors":
 			errorURL := req.URL.Query().Get("err")
 			if errorURL != "" {
-				errorMessage := errorcode.CodeToMessage(errorURL)
+				errorMessage := errorcode.CodeToMessage(errorURL, langCode)
 				finalSubstitutions[key] = html.EscapeString(errorMessage)
 			} else {
 				finalSubstitutions[key] = ""
 			}
 		case "ReturnURL":
 			returnURL := whitelist.SanitizeURL(req.URL.Query().Get("from"))
-			finalSubstitutions[key] = html.EscapeString(returnURL)
+			htmlEscaped := html.EscapeString(returnURL)
+			finalSubstitutions[key] = htmlEscaped
 		case "Text", "TemplateText":
 			if substitutionValue, ok := testSubstitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
@@ -183,16 +162,10 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	// Resolve template texts
 	for key, val := range substitutionTypes {
 		if val == "TemplateText" {
-			slog.Info("Substitution: ", "val", finalSubstitutions[key])
 			subTemplate := fasttemplate.New(finalSubstitutions[key].(string), "{{ ", " }}")
 			finalSubstitutions[key] = subTemplate.ExecuteString(finalSubstitutions)
-			slog.Info("Substitution: ", "val", finalSubstitutions[key])
 		}
 	}
-
-	slog.Info("substitutions", "types", substitutionTypes, "baseSubstitutions", baseSubstitutions, "testSubstitutions", testSubstitutions)
-	slog.Info("Final", "finalSubstitutions", finalSubstitutions)
-	slog.Info("Getting page")
 
 	// Get base page
 	pageData, err := retrieve.RetrievePage(templateUrl)
@@ -211,12 +184,6 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	fmt.Fprint(w, htmlData)
 }
-
-// Implement a bad URL redirect
-// Users might just manually rewrite the url, and it shouldn't break then
-// /ja/blog/page1.html should redirect to /ja/ブログ/パージ１.html
-// /en/ブログ/パージ１.html should redirect to /en/blog/page1.html
-// Use http.Redirect(w, req, "to", http.StatusPermanentRedirect)
 
 func Register() {
 	// Get a list of URL entrypoints

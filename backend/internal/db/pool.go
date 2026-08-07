@@ -3,7 +3,6 @@ package db
 import (
 	"context"
 	"fmt"
-	"log/slog"
 	"os"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -12,8 +11,6 @@ import (
 var Pool *pgxpool.Pool
 
 func Init() error {
-	slog.Info("Opening new SQL connection!")
-
 	connectionString := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 		"db",
 		5432,

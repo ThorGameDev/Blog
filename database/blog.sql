@@ -22,15 +22,36 @@ CREATE TABLE languages (
     lang_code VARCHAR(2) NOT NULL,
     lang_name VARCHAR(32) NOT NULL,
     page_tags TEXT NOT NULL,
+    is_primary BOOL NOT NULL,
     PRIMARY KEY (lang_code)
 );
 INSERT INTO languages VALUES
-('en', 'English', ''),
+('en', 'English', '', true),
 (
     'ja',
     '日本語',
-    '<meta name="robots" content="noindex, follow">'
+    '<meta name="robots" content="noindex, follow">',
+    false
 );
+
+CREATE TABLE error_codes (
+    code_id VARCHAR(16) NOT NULL,
+    lang_code VARCHAR(2) NOT NULL,
+    content VARCHAR(256) NOT NULL,
+    FOREIGN KEY (lang_code) REFERENCES languages(lang_code),
+    PRIMARY KEY (code_id, lang_code)
+);
+INSERT INTO error_codes VALUES
+('AccExs', 'en', 'That account already exists!'),
+('UmtchP', 'en', 'The passwords do not match!'),
+('UWrong', 'en', 'Incorrect username!'),
+('PWrong', 'en', 'Incorrect password!'),
+('IntErr', 'en', 'Internal Server Error'),
+('AccExs', 'ja', 'そのアカウントは既にあります！'),
+('UmtchP', 'ja', 'パスワードと確認は同じではありません！'),
+('UWrong', 'ja', 'ユーザー名は正しくない！'),
+('PWrong', 'ja', 'パスワードは正しくない！'),
+('IntErr', 'ja', 'サーバーの中には問題いぱいある！');
 
 CREATE TABLE page_type (
     page_type_id SERIAL,
@@ -183,7 +204,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
         "PasswordPrompt": "パスワード",
         "ConfirmPassPrompt": "パスワード確認",
         "SubmitPrompt": "登録",
-        "SwitchPrompt": "すでにアカウントをありますか？<a href=\"/ja/ログイン.html?from={{ ReturnURL }}\">ログイン</a>してください。"
+        "SwitchPrompt": "既にアカウントをありますか？<a href=\"/ja/ログイン.html?from={{ ReturnURL }}\">ログイン</a>してください。"
     }
     '::JSONB
 ),
