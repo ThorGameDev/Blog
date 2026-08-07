@@ -107,7 +107,7 @@ INSERT INTO page_type (
     'BlogPage',
     '
     {
-        "PageURL": "URL", 
+        "AccountDetails": "AccountDetails", 
         "LangCode": "LangCode", 
         "PageTitle": "Text", 
         "LangTags": "LangTags",

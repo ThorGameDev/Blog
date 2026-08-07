@@ -76,7 +76,6 @@ func TranslateURL(decodedURL string, queryParams url.Values, newLangCode string)
 		suffix = TranslateQueryParams(queryParams, newLangCode)
 	}
 
-	slog.Info("URL", "url", decodedURL)
 	var prefix string
 	if len(decodedURL) >= 4 {
 		if decodedURL[0] == '/' && decodedURL[3] == '/' {
@@ -87,7 +86,6 @@ func TranslateURL(decodedURL string, queryParams url.Values, newLangCode string)
 		}
 	}
 
-	slog.Info("URL", "url", decodedURL)
 	var newURL string
 	err := db.Pool.QueryRow(context.Background(),
 		`SELECT url FROM translations

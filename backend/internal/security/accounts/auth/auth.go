@@ -58,7 +58,7 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 	}
 
 	sessionCookie := &http.Cookie{
-		Name:     "SessionID",
+		Name:     "session_id",
 		Value:    cookie,
 		Path:     "/",
 		HttpOnly: true,
