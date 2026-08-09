@@ -3,6 +3,7 @@ package page
 import (
 	"blogbackend/internal/db"
 	"blogbackend/internal/page/errorcode"
+	"blogbackend/internal/page/parts/creator/dashboard"
 	"blogbackend/internal/page/retrieve"
 	"blogbackend/internal/security/whitelist"
 	"blogbackend/internal/utils/requesturl"
@@ -77,11 +78,12 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 				AND lang_code = $3`
 			err = db.Pool.QueryRow(context.Background(), sql_query, "/login.html", "en", langCode).Scan(&loginURL, &loginTitle)
 			if err != nil {
-				slog.Error("Failed to get url and title of login", "err", err)
+				return "", err
 			}
 			err = db.Pool.QueryRow(context.Background(), sql_query, "/signup.html", "en", langCode).Scan(&signupURL, &signupTitle)
 			if err != nil {
 				slog.Error("Failed to get url and title of signup", "err", err)
+				return "", err
 			}
 
 			return fmt.Sprintf(`<a href="/%s%s?%s">%s</a><a href="/%s%s?%s">%s</a>`,
@@ -153,7 +155,6 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	altURLs, err := requesturl.GetAlternateURLs(pageURL, langCode, queryParams)
-	slog.Info("AltURLS:", "aaltURLs", altURLs)
 	if err != nil {
 		slog.Error("Failure getting alternate URLs!", "err", err)
 		http.Error(w, "Failure getting alternate URLs", http.StatusNotFound)
@@ -212,6 +213,14 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				slog.Warn("Untranslated content in", "url", fullPageURL, "key", key)
 				finalSubstitutions[key] = ""
 			}
+		case "Creator.Dashboard":
+			dashboardData, err := dashboard.GenerateCreatorDashboard()
+			if err != nil {
+				slog.Error("Error while creating creator dashboard", "err", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			finalSubstitutions[key] = dashboardData
 		}
 	}
 

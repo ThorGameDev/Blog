@@ -1,16 +1,14 @@
 <!DOCTYPE html>
-<html lang="{{ LangCode }}">
+<html lang="en">
 	<head>
-        <title>Blog: {{ PageTitle }}</title>
+        <title>Blog: </title>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" href="/style/site.css">
-		{{ LangTags }}
+		<link rel="stylesheet" href="/style/dashboard.css">
+        <meta name="robots" content="noindex, follow">
 	</head>
 	<body>
-        <h1>{{ PageTitle }}</h1>
-        <a href="/en/login.html?from={{ PageURL }}">Login</a>
-        <a href="/en/signup.html?from={{ PageURL }}">Sign Up</a>
-        {{ Content }}
-        {{ LangRedirects }}
+        <h1>Creator Dashboard</h1>
+        {{ Dashboard }}
 	</body>
 </html>

@@ -1,0 +1,26 @@
+.mainBlock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: 1rem;
+  padding: 1rem;
+  background-color: lightgrey;
+}
+
+.pageBlock {
+  padding: 1rem;
+  background-color: orange;
+  border: 0.2rem solid brown;
+  text-align: center;
+}
+
+.info {
+  display: flex;
+  text-align: left;
+  justify-content: space-between;
+  padding-bottom: 1rem;
+}
+
+.BlogPage {
+  background-color: lightblue;
+  border-color: blue;
+}

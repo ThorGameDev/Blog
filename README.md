@@ -1,8 +1,6 @@
 # Blog
 This is a Work In Progress Blog engine to host my own personal blog.
 
-The current stage is to migrate my existing work over to this new Docker + Go architecture
-
 ## Current features
 - Basic Docker setup
 - HTML is minified
