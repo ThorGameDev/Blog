@@ -122,10 +122,31 @@ INSERT INTO page_type (
     'CreatorDashboard',
     '
     {
+        "PageTitle": "Text", 
+        "ManagePage": "Text", 
+        "NoAnalytics": "Text", 
+        "LangCode": "LangCode", 
+        "LangTags": "LangTags",
+        "LangRedirects": "LangRedirects",
+        "AccountDetails": "AccountDetails", 
         "Dashboard": "Creator.Dashboard"
     }
     '::JSONB,
     'http://nginx-frontend:8080/templates/creator/dashboard.html'
+),
+(
+    5,
+    'PageEditor',
+    '
+    {
+        "PageTitle": "Text", 
+        "LangCode": "LangCode", 
+        "LangTags": "LangTags",
+        "LangRedirects": "LangRedirects",
+        "AccountDetails": "AccountDetails"
+    }
+    '::JSONB,
+    'http://nginx-frontend:8080/templates/creator/editor.html'
 );
 
 CREATE TABLE pages (
@@ -134,7 +155,11 @@ CREATE TABLE pages (
     FOREIGN KEY (page_type_id) REFERENCES page_type(page_type_id),
     PRIMARY KEY (page_id)
 );
-INSERT INTO pages (page_id, page_type_id) VALUES (1, 1), (2, 2), (3, 3), (4, 4);
+INSERT INTO pages (page_id, page_type_id) VALUES (1, 1),
+(2, 2),
+(3, 3),
+(4, 4),
+(5, 5);
 
 
 CREATE TABLE translations (
@@ -155,8 +180,31 @@ INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
 (2, 'en', '{ "PageTitle": "Signup" }'::JSONB, '/signup.html'),
 (2, 'ja', '{ "PageTitle": "登録" }'::JSONB, '/とうろく.html'),
 (3, 'en', '{ "PageTitle": "Page 1" }'::JSONB, '/blog/page1.html'),
-(3, 'ja', '{ "PageTitle": "ページ１" }'::JSONB, '/ブログ/パージ１.html'),
-(4, 'en', '{}'::JSONB, '/creator/dashboard.html');
+(3, 'ja', '{ "PageTitle": "ページ１" }'::JSONB, '/ブログ/ページ１.html'),
+(
+    4,
+    'en',
+    '{ "PageTitle": "Creator Dashboard" }'::JSONB,
+    '/creator/dashboard.html'
+),
+(
+    4,
+    'ja',
+    '{ "PageTitle": "クリエイターダッシュボード" }'::JSONB,
+    '/クリエイター/ダッシュボード.html'
+),
+(
+    5,
+    'en',
+    '{ "PageTitle": "Editor" }'::JSONB,
+    '/creator/editor.html'
+),
+(
+    5,
+    'ja',
+    '{ "PageTitle": "エディタ" }'::JSONB,
+    '/クリエイター/エディタ.html'
+);
 
 CREATE TABLE tests (
     test_id VARCHAR(2) NOT NULL,
@@ -225,4 +273,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
 ('bb', 5, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB),
 ('aa', 6, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
 ('ab', 6, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB),
-('aa', 7, '{ }'::JSONB);
+('aa', 7, '{ "ManagePage": "Manage Page", "NoAnalytics": "No analytics avaliable yet!" }'::JSONB),
+('aa', 8, '{ "ManagePage": "ページ管理", "NoAnalytics": "このページの情報はありません。" }'::JSONB),
+('aa', 9, '{ }'::JSONB),
+('aa', 10, '{ }'::JSONB);

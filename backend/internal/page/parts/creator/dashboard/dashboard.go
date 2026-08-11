@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"blogbackend/internal/db"
+	"blogbackend/internal/utils/requesturl"
 	"context"
 	"fmt"
 	"log/slog"
@@ -9,10 +10,12 @@ import (
 )
 
 func createAnalytics(pageid int) string {
-	return `<div class="analytics"><p>No analytics avaliable yet</p></div>`
+	return `<div class="analytics"><p>{{ NoAnalytics }}</p></div>`
 }
 
-func GenerateCreatorDashboard() (string, error) {
+func GenerateCreatorDashboard(langCode string) (string, error) {
+	editorLink := requesturl.TranslateURL("/en/creator/editor.html", nil, langCode)
+
 	rows, err := db.Pool.Query(context.Background(),
 		`SELECT translations.page_id,
 				page_type.type_name,
@@ -22,7 +25,9 @@ func GenerateCreatorDashboard() (string, error) {
 			FROM pages, translations, page_type 
 			WHERE translations.page_id = pages.page_id 
 			AND pages.page_type_id = page_type.page_type_id
-			ORDER BY translations.page_id ASC`)
+			ORDER BY translations.page_id ASC,
+				(lang_code = $1) DESC`,
+			langCode)
 	if err != nil {
 		slog.Error("Error while querying the database", "err", err)
 	}
@@ -55,7 +60,7 @@ func GenerateCreatorDashboard() (string, error) {
 				dashboardData.WriteString(createAnalytics(current_page_id))
 
 				// Close info block, add Manage Page link, and close pageBlock
-				fmt.Fprintf(&dashboardData, `</div><a href="/en/creator/edit.html?page=%d">Manage Page</a></div>`, current_page_id)
+				fmt.Fprintf(&dashboardData, `</div><a href="%s?page=%d">{{ ManagePage }}</a></div>`, editorLink, current_page_id)
 			}
 
 			// begin the current section
@@ -65,7 +70,7 @@ func GenerateCreatorDashboard() (string, error) {
 
 		// Insert the translation data into the current section
 		fmt.Fprintf(&dashboardData, `<h3>%s</h3>`, page_title)
-		fmt.Fprintf(&dashboardData, `<a hreflang="%s" href="%s">%s</a>`, lang_code, url, url)
+		fmt.Fprintf(&dashboardData, `<a hreflang="%s" href="/%s%s">%s</a>`, lang_code, lang_code, url, url)
 	}
 
 	// Finish up the final pageBlock
@@ -77,7 +82,7 @@ func GenerateCreatorDashboard() (string, error) {
 	dashboardData.WriteString(createAnalytics(current_page_id))
 
 	// Close info block, add Manage Page link, and close pageBlock
-	fmt.Fprintf(&dashboardData, `</div><a href="/en/creator/edit.html?page=%d">Manage Page</a></div>`, current_page_id)
+	fmt.Fprintf(&dashboardData, `</div><a href="%s?page=%d">{{ ManagePage }}</a></div>`, editorLink, current_page_id)
 
 
 	// Close the mainBlock

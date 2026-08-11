@@ -214,7 +214,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				finalSubstitutions[key] = ""
 			}
 		case "Creator.Dashboard":
-			dashboardData, err := dashboard.GenerateCreatorDashboard()
+			dashboardData, err := dashboard.GenerateCreatorDashboard(langCode)
 			if err != nil {
 				slog.Error("Error while creating creator dashboard", "err", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -226,7 +226,8 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 
 	// Resolve template texts
 	for key, val := range substitutionTypes {
-		if val == "TemplateText" {
+		switch val {
+		case "TemplateText", "Creator.Dashboard":
 			subTemplate := fasttemplate.New(finalSubstitutions[key].(string), "{{ ", " }}")
 			finalSubstitutions[key] = subTemplate.ExecuteString(finalSubstitutions)
 		}
