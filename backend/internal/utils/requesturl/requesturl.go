@@ -2,6 +2,7 @@ package requesturl
 
 import (
 	"blogbackend/internal/db"
+	"blogbackend/internal/security/whitelist"
 	"context"
 	"fmt"
 	"log/slog"
@@ -71,6 +72,7 @@ func TranslateQueryParams(queryParams url.Values, newLangCode string) string {
 }
 
 func TranslateURL(decodedURL string, queryParams url.Values, newLangCode string) string {
+	newLangCode = whitelist.SanitizeLangCode(newLangCode)
 	var suffix string
 	if len(queryParams) != 0 {
 		suffix = TranslateQueryParams(queryParams, newLangCode)

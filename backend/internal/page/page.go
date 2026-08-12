@@ -164,9 +164,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			AND url = $2`,
 		langCode, pageURL).Scan(&baseSubstitutions, &testSubstitutions)
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			slog.Warn("No page content is available", "err", err)
-		} else {
+		if !errors.Is(err, pgx.ErrNoRows) {
 			slog.Error("Critical SQL error while getting page content", "err", err)
 		}
 		http.Error(w, "Could not find page in SQL", http.StatusNotFound)
