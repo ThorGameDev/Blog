@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="{{ LangCode }}">
 	<head>
-        <title>Blog: {{ PageTitle }}</title>
+		<title>Blog: {{ PageTitle }}</title>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" href="/style/site.css">
 		<link rel="stylesheet" href="/style/dashboard.css">
-        <meta name="robots" content="noindex, follow">
+		<meta name="robots" content="noindex, follow">
 		{{ LangTags }}
 	</head>
 	<body>
-        <h1>{{ PageTitle }}</h1>
-        {{ AccountDetails }}
-        {{ Dashboard }}
-        {{ LangRedirects }}
+		<h1>{{ PageTitle }}</h1>
+		{{ AccountDetails }}
+		{{ Dashboard }}
+		<form action="/api/creator/newPage?lang={{ LangCode }}" method="post" id="newpageForm">
+			{{ PageTypeDropdown }}
+			<input type="number" step="1" id="minPermissions" name="minPermissions" placeholder="{{ PermissionsPrompt }}">
+			<button type="submit">{{ SubmitPrompt }}</button>
+		</form>
+		{{ LangRedirects }}
 	</body>
 </html>

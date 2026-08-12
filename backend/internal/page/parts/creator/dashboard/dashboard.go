@@ -2,6 +2,7 @@ package dashboard
 
 import (
 	"blogbackend/internal/db"
+	"blogbackend/internal/page/errorcode"
 	"blogbackend/internal/utils/requesturl"
 	"context"
 	"fmt"
@@ -9,83 +10,108 @@ import (
 	"strings"
 )
 
-func createAnalytics(pageid int) string {
-	return `<div class="analytics"><p>{{ NoAnalytics }}</p></div>`
+func createAnalytics(pageid int, langCode string) string {
+	return fmt.Sprintf(`<div class="analytics"><p>%s</p></div>`, errorcode.CodeToMessage(errorcode.NoAnalytics, langCode))
+}
+
+func GeneratePageTypeDropdown() string {
+	var dropdown strings.Builder
+	dropdown.WriteString(`<select name="pageType" id="pageType">`)
+
+	rows, err := db.Pool.Query(context.Background(),
+		`SELECT page_type_id, type_name from page_type`)
+	if err != nil {
+		dropdown.WriteString(`</select>`)
+		return dropdown.String()
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var row_type_id int
+		var row_type_name string
+		if err := rows.Scan(&row_type_id, &row_type_name); err != nil {
+			slog.Error("Critical Error!", "err", err)
+			dropdown.WriteString(`</select>`)
+			return dropdown.String()
+		}
+		fmt.Fprintf(&dropdown, `<option value="%d">%s</option>`, row_type_id, row_type_name)
+	}
+
+	dropdown.WriteString(`</select>`)
+	return dropdown.String()
 }
 
 func GenerateCreatorDashboard(langCode string) (string, error) {
 	editorLink := requesturl.TranslateURL("/en/creator/editor.html", nil, langCode)
 
-	rows, err := db.Pool.Query(context.Background(),
-		`SELECT translations.page_id,
-				page_type.type_name,
-				translations.url,
-				translations.substitutions->>'PageTitle',
-				translations.lang_code 
-			FROM pages, translations, page_type 
-			WHERE translations.page_id = pages.page_id 
-			AND pages.page_type_id = page_type.page_type_id
-			ORDER BY translations.page_id ASC,
-				(lang_code = $1) DESC`,
-			langCode)
+	pageRows, err := db.Pool.Query(context.Background(),
+		`SELECT page_id, type_name
+			FROM pages, page_type
+			WHERE pages.page_type_id = page_type.page_type_id
+			ORDER BY pages.page_id DESC`)
 	if err != nil {
 		slog.Error("Error while querying the database", "err", err)
+		return "", err
 	}
-	defer rows.Close()
+	defer pageRows.Close()
 
 	var dashboardData strings.Builder
 
 	// Create a main block that will sort the contents in a grid
 	dashboardData.WriteString(`<div class="mainBlock">`)
 
-	current_page_id := 0
-	for rows.Next() {
-		var page_id int
-		var type_name string
-		var url string
-		var page_title string
-		var lang_code string
-		if err := rows.Scan(&page_id, &type_name, &url, &page_title, &lang_code); err != nil {
-			slog.Error("Critical Error!", "err", err)
+	for pageRows.Next() {
+		var pageId int
+		var typeName string
+		if err := pageRows.Scan(&pageId, &typeName); err != nil {
+			slog.Error("Critical Error!A", "err", err)
+			return "", err
 		}
 
-		// If this is a new page, create the header and footer
-		if page_id != current_page_id {
-			// End a previous section
-			if current_page_id != 0 {
-				// Close translations
-				dashboardData.WriteString(`</div>`)
+		// Start the block
+		fmt.Fprintf(&dashboardData, `<div class="pageBlock %s"><div class="info"><div class="translations">`, typeName)
 
-				// Add analytic block
-				dashboardData.WriteString(createAnalytics(current_page_id))
+		// Get data on each translation in block
+		translationRows, err := db.Pool.Query(context.Background(),
+			`SELECT translations.url,
+					translations.substitutions->>'PageTitle',
+					translations.lang_code
+				FROM pages, translations
+				WHERE translations.page_id = pages.page_id
+				AND pages.page_id = $1
+				ORDER BY (lang_code = $2) DESC`,
+			pageId, langCode)
+		if err != nil {
+			slog.Error("Error while querying the database", "err", err)
+			return "", err
+		}
+		defer translationRows.Close()
 
-				// Close info block, add Manage Page link, and close pageBlock
-				fmt.Fprintf(&dashboardData, `</div><a href="%s?page=%d">{{ ManagePage }}</a></div>`, editorLink, current_page_id)
+		// Add translation data
+		for translationRows.Next() {
+			var rowURL string
+			var rowPageTitle string
+			var rowLangCode string
+			if err := translationRows.Scan(&rowURL, &rowPageTitle, &rowLangCode); err != nil {
+				slog.Error("Critical Error!", "err", err)
+				return "", err
 			}
-
-			// begin the current section
-			fmt.Fprintf(&dashboardData, `<div class="pageBlock %s"><div class="info"><div class="translations">`, type_name)
-			current_page_id = page_id
+			fmt.Fprintf(&dashboardData, `<h3>%s</h3>`, rowPageTitle)
+			fmt.Fprintf(&dashboardData, `<a hreflang="%s" href="/%s%s">%s</a>`, rowLangCode, rowLangCode, rowURL, rowURL)
 		}
 
-		// Insert the translation data into the current section
-		fmt.Fprintf(&dashboardData, `<h3>%s</h3>`, page_title)
-		fmt.Fprintf(&dashboardData, `<a hreflang="%s" href="/%s%s">%s</a>`, lang_code, lang_code, url, url)
+		// Close translations block
+		dashboardData.WriteString(`</div>`)
+
+		// Add analytic block
+		dashboardData.WriteString(createAnalytics(pageId, langCode))
+
+		// Close info block, add Manage Page link, and close pageBlock
+		fmt.Fprintf(&dashboardData, `</div><a href="%s?page=%d">{{ ManagePage }}</a></div>`, editorLink, pageId)
+
 	}
 
-	// Finish up the final pageBlock
-
-	// Close translations
-	dashboardData.WriteString(`</div>`)
-
-	// Add analytic block
-	dashboardData.WriteString(createAnalytics(current_page_id))
-
-	// Close info block, add Manage Page link, and close pageBlock
-	fmt.Fprintf(&dashboardData, `</div><a href="%s?page=%d">{{ ManagePage }}</a></div>`, editorLink, current_page_id)
-
-
-	// Close the mainBlock
+	// Close Main Block
 	dashboardData.WriteString("</div>")
 
 	return dashboardData.String(), nil

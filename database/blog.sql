@@ -47,11 +47,17 @@ INSERT INTO error_codes VALUES
 ('UWrong', 'en', 'Incorrect username!'),
 ('PWrong', 'en', 'Incorrect password!'),
 ('IntErr', 'en', 'Internal Server Error'),
+('NoInfo', 'en', 'No analytics avaliable yet!'),
+('SesExp', 'en', 'Your session expired!'),
+('NoPerm', 'en', 'You do not have enough permissions'),
 ('AccExs', 'ja', 'そのアカウントは既にあります！'),
 ('UmtchP', 'ja', 'パスワードと確認は同じではありません！'),
 ('UWrong', 'ja', 'ユーザー名は正しくない！'),
 ('PWrong', 'ja', 'パスワードは正しくない！'),
-('IntErr', 'ja', 'サーバーの中には問題いぱいある！');
+('IntErr', 'ja', 'サーバーの中には問題いっぱいある！'),
+('NoInfo', 'ja', 'このページの情報はありません。'),
+('SesExp', 'ja', '君のセッションは消えました。'),
+('NoPerm', 'ja', '許可がありません。');
 
 CREATE TABLE page_type (
     page_type_id SERIAL,
@@ -68,12 +74,12 @@ INSERT INTO page_type (
     'LoginPage',
     '
     {
-        "LangCode": "LangCode", 
-        "PageTitle": "Text", 
+        "LangCode": "LangCode",
+        "PageTitle": "Text",
         "LangTags": "LangTags",
         "Errors": "Errors",
-        "UsernamePrompt": "Text", 
-        "PasswordPrompt": "Text", 
+        "UsernamePrompt": "Text",
+        "PasswordPrompt": "Text",
         "ReturnURL": "ReturnURL",
         "SubmitPrompt": "Text",
         "LangRedirects": "LangRedirects",
@@ -87,13 +93,13 @@ INSERT INTO page_type (
     'SignupPage',
     '
     {
-        "LangCode": "LangCode", 
-        "PageTitle": "Text", 
+        "LangCode": "LangCode",
+        "PageTitle": "Text",
         "LangTags": "LangTags",
         "Errors": "Errors",
-        "UsernamePrompt": "Text", 
-        "PasswordPrompt": "Text", 
-        "ConfirmPassPrompt": "Text", 
+        "UsernamePrompt": "Text",
+        "PasswordPrompt": "Text",
+        "ConfirmPassPrompt": "Text",
         "ReturnURL": "ReturnURL",
         "SubmitPrompt": "Text",
         "LangRedirects": "LangRedirects",
@@ -107,9 +113,9 @@ INSERT INTO page_type (
     'BlogPage',
     '
     {
-        "AccountDetails": "AccountDetails", 
-        "LangCode": "LangCode", 
-        "PageTitle": "Text", 
+        "AccountDetails": "AccountDetails",
+        "LangCode": "LangCode",
+        "PageTitle": "Text",
         "LangTags": "LangTags",
         "Content": "Text",
         "LangRedirects": "LangRedirects"
@@ -122,13 +128,15 @@ INSERT INTO page_type (
     'CreatorDashboard',
     '
     {
-        "PageTitle": "Text", 
-        "ManagePage": "Text", 
-        "NoAnalytics": "Text", 
-        "LangCode": "LangCode", 
+        "PageTitle": "Text",
+        "ManagePage": "Text",
+        "PermissionsPrompt": "Text",
+        "PageTypeDropdown": "Creator.PageTypeDropdown",
+        "SubmitPrompt": "Text",
+        "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
-        "AccountDetails": "AccountDetails", 
+        "AccountDetails": "AccountDetails",
         "Dashboard": "Creator.Dashboard"
     }
     '::JSONB,
@@ -139,8 +147,8 @@ INSERT INTO page_type (
     'PageEditor',
     '
     {
-        "PageTitle": "Text", 
-        "LangCode": "LangCode", 
+        "PageTitle": "Text",
+        "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails"
@@ -152,14 +160,17 @@ INSERT INTO page_type (
 CREATE TABLE pages (
     page_id SERIAL,
     page_type_id INT NOT NULL,
+    required_privilege INT NOT NULL,
     FOREIGN KEY (page_type_id) REFERENCES page_type(page_type_id),
     PRIMARY KEY (page_id)
 );
-INSERT INTO pages (page_id, page_type_id) VALUES (1, 1),
-(2, 2),
-(3, 3),
-(4, 4),
-(5, 5);
+INSERT INTO pages (page_type_id, required_privilege) VALUES
+(1, 0),
+(2, 0),
+(3, 0),
+-- Set to 6 latter. 0 for testing (Because signing in every time is a pain)
+(4, 0),
+(5, 0);
 
 
 CREATE TABLE translations (
@@ -221,7 +232,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     'aa',
     1,
     '
-    { 
+    {
         "UsernamePrompt": "Username",
         "PasswordPrompt": "Password",
         "SubmitPrompt": "Submit",
@@ -233,9 +244,9 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     'aa',
     2,
     '
-    { 
+    {
         "UsernamePrompt": "ユーザー名",
-        "PasswordPrompt": "パスワード", 
+        "PasswordPrompt": "パスワード",
         "SubmitPrompt": "ログイン",
         "SwitchPrompt": "アカウントをありませんならば、<a href=\"/ja/とうろく.html?from={{ ReturnURL }}\">登録</a>しませんか？"
     }
@@ -245,7 +256,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     'aa',
     3,
     '
-    { 
+    {
         "UsernamePrompt": "Username",
         "PasswordPrompt": "Password",
         "ConfirmPassPrompt": "Confirm Password",
@@ -258,7 +269,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     'aa',
     4,
     '
-    { 
+    {
         "UsernamePrompt": "ユーザー名",
         "PasswordPrompt": "パスワード",
         "ConfirmPassPrompt": "パスワード確認",
@@ -273,7 +284,27 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
 ('bb', 5, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB),
 ('aa', 6, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
 ('ab', 6, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB),
-('aa', 7, '{ "ManagePage": "Manage Page", "NoAnalytics": "No analytics avaliable yet!" }'::JSONB),
-('aa', 8, '{ "ManagePage": "ページ管理", "NoAnalytics": "このページの情報はありません。" }'::JSONB),
+(
+    'aa',
+    7,
+    '
+    {
+        "ManagePage": "Manage Page",
+        "PermissionsPrompt": "Permissions",
+        "SubmitPrompt": "Create New Page"
+    }
+    '::JSONB
+),
+(
+    'aa',
+    8,
+    '
+    {
+        "ManagePage": "ページ管理",
+        "PermissionsPrompt": "許可",
+        "SubmitPrompt": "新しいページを作る"
+    }
+    '::JSONB
+),
 ('aa', 9, '{ }'::JSONB),
 ('aa', 10, '{ }'::JSONB);

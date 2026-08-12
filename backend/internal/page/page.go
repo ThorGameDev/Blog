@@ -5,6 +5,7 @@ import (
 	"blogbackend/internal/page/errorcode"
 	"blogbackend/internal/page/parts/creator/dashboard"
 	"blogbackend/internal/page/retrieve"
+	"blogbackend/internal/security/accounts/permissions"
 	"blogbackend/internal/security/whitelist"
 	"blogbackend/internal/utils/requesturl"
 	"context"
@@ -116,14 +117,15 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	// Get page typeset
 	var substitutionTypes map[string]string
 	var templateUrl string
+	var requiredPrivilege int
 	err := db.Pool.QueryRow(context.Background(),
-		`SELECT substitution_types, template_url
+		`SELECT substitution_types, template_url, required_privilege 
 			FROM page_type, pages, translations
 			WHERE pages.page_type_id = page_type.page_type_id
 			AND translations.page_id = pages.page_id 
 			AND lang_code = $1
 			AND url = $2`,
-		langCode, pageURL).Scan(&substitutionTypes, &templateUrl)
+		langCode, pageURL).Scan(&substitutionTypes, &templateUrl, &requiredPrivilege)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			badURLRedirect(w, req, pageURL, queryParams, langCode)
@@ -132,6 +134,23 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "Could not find page in SQL", http.StatusNotFound)
 		}
 		return
+	}
+
+	// Check if user has the permissions required to view the page
+	if requiredPrivilege > 0 {
+		sessionId, err := req.Cookie("session_id")
+		if err != nil {
+			if err != http.ErrNoCookie {
+				slog.Error("Unknown cookie error", "err", err)
+			}
+			http.Error(w, "No permissions to access page", http.StatusForbidden)
+			return
+		}
+		err = permissions.RequireLevel(sessionId.Value, requiredPrivilege)
+		if err != nil {
+			http.Error(w, errorcode.CodeToMessage(err.Error(), langCode), http.StatusForbidden)
+			return
+		}
 	}
 
 	// Get substitutions
@@ -221,6 +240,8 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				return
 			}
 			finalSubstitutions[key] = dashboardData
+		case "Creator.PageTypeDropdown":
+			finalSubstitutions[key] = dashboard.GeneratePageTypeDropdown()
 		}
 	}
 

@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"blogbackend/internal/creator"
 	"blogbackend/internal/db"
 	"blogbackend/internal/page"
 	"blogbackend/internal/security/accounts/auth"
@@ -16,6 +17,7 @@ func main() {
 
 	auth.Register()
 	page.Register()
+	creator.Register()
 
 	http.ListenAndServe(":8090", nil)
 }

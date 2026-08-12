@@ -39,6 +39,8 @@ services:
       - database/postgres.env
     # volumes: # Remove for testing the init
     #   - pgdata:/var/lib/postgresql
+    ports:
+      - "127.0.0.1:5432:5432"
     networks:
       - postgres-network
 

@@ -1,2 +1,4 @@
 # Ignore the postgres env file
 postgres.env
+# Also ignore the development tools, because it uses the database password
+postgres-language-server.jsonc
