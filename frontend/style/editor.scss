@@ -1,0 +1,15 @@
+.sideBySide {
+  display: flex;
+  justify-content: space-between;
+}
+
+.directEditor {
+  flex: 1;
+  margin: 0.3em;
+  min-width: 0;
+}
+
+.directEditor, iframe {
+  width: 100%;
+  height: 30em;
+}

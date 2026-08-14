@@ -4,6 +4,7 @@ import (
 	"blogbackend/internal/db"
 	"blogbackend/internal/page/errorcode"
 	"blogbackend/internal/page/parts/creator/dashboard"
+	"blogbackend/internal/page/parts/creator/editor"
 	"blogbackend/internal/page/retrieve"
 	"blogbackend/internal/security/accounts/permissions"
 	"blogbackend/internal/security/whitelist"
@@ -161,8 +162,9 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			FROM translations, tests
 			WHERE translations.translation_id = tests.translation_id
 			AND lang_code = $1
-			AND url = $2`,
-		langCode, pageURL).Scan(&baseSubstitutions, &testSubstitutions)
+			AND url = $2
+			ORDER BY (test_id = $3) DESC`,
+		langCode, pageURL, queryParams.Get("test")).Scan(&baseSubstitutions, &testSubstitutions)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			slog.Error("Critical SQL error while getting page content", "err", err)
@@ -240,6 +242,8 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			finalSubstitutions[key] = dashboardData
 		case "Creator.PageTypeDropdown":
 			finalSubstitutions[key] = dashboard.GeneratePageTypeDropdown()
+		case "Creator.Editor":
+			finalSubstitutions[key] = editor.GenerateEditor(langCode, req.URL.Query().Get("page"))
 		}
 	}
 

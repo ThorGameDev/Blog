@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html lang="{{ LangCode }}">
 	<head>
-        <title>Blog: {{ PageTitle }}</title>
+		<title>Blog: {{ PageTitle }}</title>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" href="/style/site.css">
-        <meta name="robots" content="noindex, follow">
+		<link rel="stylesheet" href="/style/editor.css">
+		<meta name="robots" content="noindex, follow">
 		{{ LangTags }}
 	</head>
 	<body>
-        <h1>{{ PageTitle }}</h1>
-        {{ AccountDetails }}
-        {{ LangRedirects }}
+		<h1>{{ PageTitle }}</h1>
+		{{ AccountDetails }}
+		{{ Editor }}
+		{{ LangRedirects }}
 	</body>
 </html>
