@@ -6,12 +6,12 @@ INSERT INTO page_type (
     'BlogPage',
     '
     {
-        "AccountDetails": "AccountDetails",
-        "LangCode": "LangCode",
         "PageTitle": "Text",
+        "LangCode": "LangCode",
         "LangTags": "LangTags",
-        "Content": "Text",
-        "LangRedirects": "LangRedirects"
+        "LangRedirects": "LangRedirects",
+        "AccountDetails": "AccountDetails",
+        "Content": "Text"
     }
     '::JSONB,
     'http://nginx-frontend:8080/templates/blogpage.html'
@@ -21,15 +21,15 @@ INSERT INTO page_type (
     'LoginPage',
     '
     {
-        "LangCode": "LangCode",
         "PageTitle": "Text",
+        "LangCode": "LangCode",
         "LangTags": "LangTags",
+        "LangRedirects": "LangRedirects",
         "Errors": "Errors",
+        "ReturnURL": "ReturnURL",
         "UsernamePrompt": "Text",
         "PasswordPrompt": "Text",
-        "ReturnURL": "ReturnURL",
         "SubmitPrompt": "Text",
-        "LangRedirects": "LangRedirects",
         "SwitchPrompt": "TemplateText"
     }
     '::JSONB,
@@ -40,16 +40,16 @@ INSERT INTO page_type (
     'SignupPage',
     '
     {
-        "LangCode": "LangCode",
         "PageTitle": "Text",
+        "LangCode": "LangCode",
         "LangTags": "LangTags",
+        "LangRedirects": "LangRedirects",
         "Errors": "Errors",
+        "ReturnURL": "ReturnURL",
         "UsernamePrompt": "Text",
         "PasswordPrompt": "Text",
         "ConfirmPassPrompt": "Text",
-        "ReturnURL": "ReturnURL",
         "SubmitPrompt": "Text",
-        "LangRedirects": "LangRedirects",
         "SwitchPrompt": "TemplateText"
     }
     '::JSONB,
@@ -61,14 +61,14 @@ INSERT INTO page_type (
     '
     {
         "PageTitle": "Text",
-        "ManagePage": "Text",
-        "PermissionsPrompt": "Text",
-        "PageTypeDropdown": "Creator.PageTypeDropdown",
-        "SubmitPrompt": "Text",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails",
+        "ManagePage": "Text",
+        "PermissionsPrompt": "Text",
+        "SubmitPrompt": "Text",
+        "PageTypeDropdown": "Creator.PageTypeDropdown",
         "Dashboard": "Creator.Dashboard"
     }
     '::JSONB,

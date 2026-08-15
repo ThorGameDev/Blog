@@ -69,4 +69,5 @@ CREATE TABLE tests (
     FOREIGN KEY (translation_id) REFERENCES translations(translation_id),
     PRIMARY KEY (test_id, translation_id)
 );
+
 CREATE INDEX idx_test_translationid ON tests (translation_id);
