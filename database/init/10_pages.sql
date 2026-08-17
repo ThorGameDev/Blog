@@ -11,7 +11,7 @@ INSERT INTO page_type (
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails",
-        "Content": "Text"
+        "Content": "Content"
     }
     '::JSONB,
     'http://nginx-frontend:8080/templates/blogpage.html'
@@ -84,6 +84,7 @@ INSERT INTO page_type (
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails",
+        "SubmitPrompt": "Text",
         "Editor": "Creator.Editor"
     }
     '::JSONB,

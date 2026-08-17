@@ -65,7 +65,15 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     }
     '::JSONB
 ),
-('aa', 4, '{ }'::JSONB),
+(
+    'aa',
+    4,
+    '
+    {
+        "SubmitPrompt": "Save Changes"
+    }
+    '::JSONB
+),
 ('aa', 5, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
 ('ab', 5, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
 ('ba', 5, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),

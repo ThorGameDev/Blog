@@ -94,25 +94,45 @@ func GenerateEditor(langCode string, pageId string) string {
 
 			// Create page comparison display
 			fmt.Fprintf(&comparisonData, `<div id="e-%s" class="directEditor">`, versionCode)
-			fmt.Fprintf(&comparisonData, `<div class="iframeHold"><iframe src="/%s%s?test=%s" sandbox></iframe></div>`, rowLangCode, rowURL, testId)
+
+			// TODO: secure the iframe
+			// Sandbox is probably not needed, on account of the fact that this page is all site controlled
+			// But chances are, removing it will allow for an xss privilege escalation.
+			// Its one thing to hack the users, but It's another to have access to the page generator.
+			// But I'm removing the sandbox to allow for font loading. Currently, there are CORS errors
+			fmt.Fprintf(&comparisonData, `<div class="iframeHold"><iframe src="/%s%s?test=%s"></iframe></div>`, rowLangCode, rowURL, testId)
 
 			fmt.Fprintf(&comparisonData, `<form action="/api/creator/editTest?translation=%d&test=%s" method="post">`, translationId, testId)
 			// Create the editor
 			for _, key := range subKeys {
+				subType := substitutionTypes[key]
 				escKey := esc(key)
-				if substitutionTypes[key] == "Text" || substitutionTypes[key] == "TemplateText" {
+				if subType == "Text" || subType == "TemplateText" || subType == "Content" {
 					inputFieldId := fmt.Sprintf("i-%s-%s", escKey, versionCode)
 					fmt.Fprintf(&comparisonData, `<label for="%s">%s</label>`, inputFieldId, escKey)
 					translationVal, ok := rowTranslationSubstitutions[key]
+					testVal := esc(testSubstitutions[key])
+					var additionalAttributes string
 					if ok {
-						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s" disabled>`, escKey, inputFieldId, esc(translationVal))
-					} else {
-						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s">`, escKey, inputFieldId, esc(testSubstitutions[key]))
+						// Maybe it's silly, but in keeping with the desire to minify everything, the separating space should be here instead of the other string
+						additionalAttributes = " disabled"
+						testVal = esc(translationVal)
+					}
+
+					switch subType {
+					case "Text":
+						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s"%s>`, escKey, inputFieldId, testVal, additionalAttributes)
+					case "TemplateText":
+						// Will be different eventually
+						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s"%s>`, escKey, inputFieldId, testVal, additionalAttributes)
+					case "Content":
+						fmt.Fprintf(&comparisonData, `<textarea name="%s" id="%s"%s>%s</textarea>`, escKey, inputFieldId, additionalAttributes, esc(testSubstitutions[key]))
 					}
 					comparisonData.WriteString(`</br>`)
 				}
 			}
-			comparisonData.WriteString(`</form></div>`)
+			// Close the editor form and div, while including a submit button
+			comparisonData.WriteString(`<button type="submit">{{ SubmitPrompt }}</button></form></div>`)
 		}
 	}
 	editorData.WriteString(`<div class="sideBySide">`)

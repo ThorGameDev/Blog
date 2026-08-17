@@ -70,6 +70,14 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     }
     '::JSONB
 ),
-('aa', 9, '{ }'::JSONB),
+(
+    'aa',
+    9,
+    '
+    {
+        "SubmitPrompt": "保存"
+    }
+    '::JSONB
+),
 ('aa', 10, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
 ('ab', 10, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);

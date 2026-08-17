@@ -223,7 +223,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			returnURL := whitelist.SanitizeURL(req.URL.Query().Get("from"))
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
-		case "Text", "TemplateText":
+		case "Text", "TemplateText", "Content":
 			if substitutionValue, ok := testSubstitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
 			} else if substitutionValue, ok := baseSubstitutions[key]; ok {
@@ -250,7 +250,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	// Resolve template texts
 	for key, val := range substitutionTypes {
 		switch val {
-		case "TemplateText", "Creator.Dashboard":
+		case "TemplateText", "Creator.Dashboard", "Creator.Editor":
 			subTemplate := fasttemplate.New(finalSubstitutions[key].(string), "{{ ", " }}")
 			finalSubstitutions[key] = subTemplate.ExecuteString(finalSubstitutions)
 		}
