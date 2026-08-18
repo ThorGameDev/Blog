@@ -30,7 +30,7 @@ INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
 
 INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
 (
-    'aa',
+    '00',
     1,
     '
     {
@@ -42,7 +42,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     '::JSONB
 ),
 (
-    'aa',
+    '00',
     2,
     '
     {
@@ -55,7 +55,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     '::JSONB
 ),
 (
-    'aa',
+    '00',
     3,
     '
     {
@@ -66,15 +66,16 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     '::JSONB
 ),
 (
-    'aa',
+    '00',
     4,
     '
     {
-        "SubmitPrompt": "Save Changes"
+        "SaveChangesPrompt": "Save Changes",
+        "AddTestPrompt": "Add Test"
     }
     '::JSONB
 ),
-('aa', 5, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
-('ab', 5, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
-('ba', 5, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
-('bb', 5, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
+('00', 5, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
+('01', 5, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
+('02', 5, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
+('03', 5, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);

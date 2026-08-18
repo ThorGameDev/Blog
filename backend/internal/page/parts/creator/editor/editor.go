@@ -66,6 +66,10 @@ func GenerateEditor(langCode string, pageId string) string {
 		rowLangCode = esc(rowLangCode)
 
 		fmt.Fprintf(&editorData, `<h3>%s</h3>`, rowTranslationSubstitutions["PageTitle"])
+		fmt.Fprintf(&editorData, `<form action="/api/creator/addTest?translation=%d" method="post">`, translationId)
+		editorData.WriteString(`<button type="submit">{{ AddTestPrompt }}</button></form></div>`)
+		editorData.WriteString(`</form>`)
+
 		fmt.Fprintf(&editorData, `<a hreflang="%s" href="/%s%s">%s</a>`, rowLangCode, rowLangCode, rowURL, rowURL)
 
 		testRows, err := db.Pool.Query(context.Background(),
@@ -132,7 +136,7 @@ func GenerateEditor(langCode string, pageId string) string {
 				}
 			}
 			// Close the editor form and div, while including a submit button
-			comparisonData.WriteString(`<button type="submit">{{ SubmitPrompt }}</button></form></div>`)
+			comparisonData.WriteString(`<button type="submit">{{ SaveChangesPrompt }}</button></form></div>`)
 		}
 	}
 	editorData.WriteString(`<div class="sideBySide">`)

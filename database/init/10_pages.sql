@@ -84,7 +84,8 @@ INSERT INTO page_type (
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails",
-        "SubmitPrompt": "Text",
+        "SaveChangesPrompt": "Text",
+        "AddTestPrompt": "Text",
         "Editor": "Creator.Editor"
     }
     '::JSONB,
