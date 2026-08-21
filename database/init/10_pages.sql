@@ -85,6 +85,9 @@ INSERT INTO page_type (
         "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails",
         "SaveChangesPrompt": "Text",
+        "AddTranslationPrompt": "Text",
+        "NewTranslationUrlPrompt": "Text",
+        "NewTranslationTitlePrompt": "Text",
         "AddTestPrompt": "Text",
         "Editor": "Creator.Editor"
     }

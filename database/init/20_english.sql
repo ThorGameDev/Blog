@@ -71,6 +71,9 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     '
     {
         "SaveChangesPrompt": "Save Changes",
+        "AddTranslationPrompt": "Add Translation",
+        "NewTranslationUrlPrompt": "URL",
+        "NewTranslationTitlePrompt": "Title",
         "AddTestPrompt": "Add Test"
     }
     '::JSONB

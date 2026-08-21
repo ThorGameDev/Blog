@@ -13,9 +13,46 @@ import (
 var esc = html.EscapeString
 
 func GenerateEditor(langCode string, pageId string) string {
+	var editorData strings.Builder
+
+	missingLanguages, err := db.Pool.Query(context.Background(),
+		`SELECT lang_code, lang_name FROM languages
+			WHERE lang_code NOT IN (
+				SELECT lang_code FROM translations
+					WHERE page_id = $1
+			)`, pageId)
+	if err != nil {
+		slog.Error("Error while querying the database", "err", err)
+		return ""
+	}
+	defer missingLanguages.Close()
+
+	var missingLangOptions strings.Builder
+	missingLanguage := false
+
+	for missingLanguages.Next() {
+		missingLanguage = true
+		var missingLangCode string
+		var missingLangName string
+		if err := missingLanguages.Scan(&missingLangCode, &missingLangName); err != nil {
+			slog.Error("Critical Error!", "err", err)
+			return ""
+		}
+		fmt.Fprintf(&missingLangOptions, `<option value="%s">%s</option>`, missingLangCode, missingLangName)
+	}
+
+	if missingLanguage {
+		fmt.Fprintf(&editorData, `<form id=addTranslationForm action="/api/creator/addTranslation?lang=%s&pageId=%s">`, langCode, pageId)
+		fmt.Fprintf(&editorData, `<select name=languages>%s</select>`, missingLangOptions.String())
+		editorData.WriteString(`<input name=url type=text placeholder={{ NewTranslationUrlPrompt }}>`)
+		editorData.WriteString(`<input name=pageTitle type=text placeholder={{ NewTranslationTitlePrompt }}>`)
+		editorData.WriteString(`<button type=submit>{{ AddTranslationPrompt }}</button>`)
+		editorData.WriteString(`</form>`)
+	}
+
 	var substitutionTypes map[string]string
 	var typeName string
-	err := db.Pool.QueryRow(context.Background(),
+	err = db.Pool.QueryRow(context.Background(),
 		`SELECT substitution_types, type_name
 			FROM pages, page_type
 			WHERE page_id = $1
@@ -27,14 +64,13 @@ func GenerateEditor(langCode string, pageId string) string {
 	}
 	typeName = esc(typeName)
 
-	// Sort the keys, so that iterating is done consistently. For now, it's just alphabetical order
+	// Sort the substitution types, so that iterating is done consistently. For now, it's just alphabetical order
 	subKeys := make([]string, 0, len(substitutionTypes))
 	for key := range substitutionTypes {
 		subKeys = append(subKeys, key)
 	}
 	sort.Strings(subKeys)
 
-	var editorData strings.Builder
 	var comparisonData strings.Builder
 	// Get data on each translation in block
 	translationRows, err := db.Pool.Query(context.Background(),

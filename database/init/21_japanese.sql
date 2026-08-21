@@ -76,6 +76,9 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     '
     {
         "SaveChangesPrompt": "保存",
+        "AddTranslationPrompt": "新しい翻訳",
+        "NewTranslationUrlPrompt": "URL",
+        "NewTranslationTitlePrompt": "ページの名",
         "AddTestPrompt": "新しいテスト"
     }
     '::JSONB
