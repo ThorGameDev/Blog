@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	"github.com/jackc/pgx/v5"
 )
 
 func newPage(w http.ResponseWriter, req *http.Request) {
@@ -52,6 +54,9 @@ func nextTestId(translationId string) (string, error) {
 			ORDER BY test_id DESC`,
 		translationId).Scan(&previousTestId)
 	if err != nil {
+		if err == pgx.ErrNoRows {
+			return "00", nil
+		}
 		return "", err
 	}
 
@@ -123,6 +128,44 @@ func addTest(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func addTranslation(w http.ResponseWriter, req *http.Request) {
+	if req.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	err := req.ParseForm()
+	if err != nil {
+		slog.Error("Error parsing form", "err", err)
+		http.Error(w, "Error parsing form", http.StatusBadRequest)
+		return
+	}
+
+	pageId := req.URL.Query().Get("pageId")
+	//langCode := req.URL.Query().Get("lang")
+
+	translationLangCode := req.PostForm.Get("language")
+	translationUrl := req.PostForm.Get("url")
+	translationSubstitutions := map[string]interface{}{
+		"PageTitle": req.PostForm.Get("pageTitle"),
+	}
+	
+	status, err := db.Pool.Exec(context.Background(),
+		`INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
+		($1, $2, $3, $4)`,
+		pageId, translationLangCode, translationSubstitutions, translationUrl)
+	if err != nil {
+		slog.Error("Failed to modify page!", "err", err)
+		http.Error(w, "Failed to modify page!", http.StatusInternalServerError)
+		return
+	}
+	if status.RowsAffected() != 1 {
+		slog.Error("Created a weird number of rows!", "rowsAffected", status.RowsAffected())
+		http.Error(w, "Created a weird number of rows!", http.StatusInternalServerError)
+		return
+	}
+}
+
 func editTest(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
@@ -170,4 +213,5 @@ func Register() {
 	http.HandleFunc("/api/creator/newPage", newPage)
 	http.HandleFunc("/api/creator/editTest", editTest)
 	http.HandleFunc("/api/creator/addTest", addTest)
+	http.HandleFunc("/api/creator/addTranslation", addTranslation)
 }

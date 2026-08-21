@@ -42,8 +42,8 @@ func GenerateEditor(langCode string, pageId string) string {
 	}
 
 	if missingLanguage {
-		fmt.Fprintf(&editorData, `<form id=addTranslationForm action="/api/creator/addTranslation?lang=%s&pageId=%s">`, langCode, pageId)
-		fmt.Fprintf(&editorData, `<select name=languages>%s</select>`, missingLangOptions.String())
+		fmt.Fprintf(&editorData, `<form id=addTranslationForm action="/api/creator/addTranslation?lang=%s&pageId=%s" method=post>`, langCode, pageId)
+		fmt.Fprintf(&editorData, `<select name=language>%s</select>`, missingLangOptions.String())
 		editorData.WriteString(`<input name=url type=text placeholder={{ NewTranslationUrlPrompt }}>`)
 		editorData.WriteString(`<input name=pageTitle type=text placeholder={{ NewTranslationTitlePrompt }}>`)
 		editorData.WriteString(`<button type=submit>{{ AddTranslationPrompt }}</button>`)
