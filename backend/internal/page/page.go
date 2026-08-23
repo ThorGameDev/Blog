@@ -58,40 +58,45 @@ func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, q
 	http.Redirect(w, req, newURL, http.StatusPermanentRedirect)
 }
 
+func createLoginLinks(fromPageUrl string, langCode string) string {
+	queryParamData := url.Values{}
+	queryParamData.Set("from", "/"+langCode+fromPageUrl)
+	queryParams := queryParamData.Encode()
+	var loginURL string
+	var loginTitle string
+	var signupURL string
+	var signupTitle string
+
+	const sql_query string = `SELECT url, substitutions->>'PageTitle'
+		FROM translations
+		WHERE page_id = (
+			SELECT page_id FROM translations
+				WHERE url = $1
+				AND lang_code = $2
+		)
+		AND lang_code = $3`
+	err := db.Pool.QueryRow(context.Background(), sql_query, "/login.html", "en", langCode).Scan(&loginURL, &loginTitle)
+	if err != nil {
+		slog.Error("Failed to get url and title of login", "err", err)
+		return ""
+	}
+	err = db.Pool.QueryRow(context.Background(), sql_query, "/signup.html", "en", langCode).Scan(&signupURL, &signupTitle)
+	if err != nil {
+		slog.Error("Failed to get url and title of signup", "err", err)
+		return ""
+	}
+
+	return fmt.Sprintf(`<a href="/%s%s?%s">%s</a><a href="/%s%s?%s">%s</a>`,
+		langCode, loginURL, queryParams, loginTitle,
+		langCode, signupURL, queryParams, signupTitle,
+	)
+}
+
 func getAccountDetails(req *http.Request, pageURL string, langCode string) (string, error) {
 	session_id, err := req.Cookie("session_id")
 	if err != nil {
 		if err == http.ErrNoCookie {
-			queryParamData := url.Values{}
-			queryParamData.Set("from", "/"+langCode+pageURL)
-			queryParams := queryParamData.Encode()
-			var loginURL string
-			var loginTitle string
-			var signupURL string
-			var signupTitle string
-
-			const sql_query string = `SELECT url, substitutions->>'PageTitle'
-				FROM translations
-				WHERE page_id = (
-					SELECT page_id FROM translations
-						WHERE url = $1
-						AND lang_code = $2
-				)
-				AND lang_code = $3`
-			err = db.Pool.QueryRow(context.Background(), sql_query, "/login.html", "en", langCode).Scan(&loginURL, &loginTitle)
-			if err != nil {
-				return "", err
-			}
-			err = db.Pool.QueryRow(context.Background(), sql_query, "/signup.html", "en", langCode).Scan(&signupURL, &signupTitle)
-			if err != nil {
-				slog.Error("Failed to get url and title of signup", "err", err)
-				return "", err
-			}
-
-			return fmt.Sprintf(`<a href="/%s%s?%s">%s</a><a href="/%s%s?%s">%s</a>`,
-				langCode, loginURL, queryParams, loginTitle,
-				langCode, signupURL, queryParams, signupTitle,
-			), nil
+			return createLoginLinks(pageURL, langCode), nil
 		}
 		slog.Error("Failed to get session ID cookie!", "err", err)
 		return "", err
@@ -100,11 +105,19 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 	var username string
 	var pfp_file_id string
 	err = db.Pool.QueryRow(context.Background(),
-		`SELECT users.uid, username, pfp_file_id FROM users, sessions 
+		`SELECT users.uid, username, pfp_file_id FROM users, sessions
 			WHERE users.uid = sessions.uid
 			AND sessions.session_token = $1`,
 		session_id.Value).Scan(&uid, &username, &pfp_file_id)
-	return fmt.Sprintf("<h3>%s</h3><p>%d</p><img src='%s'>", username, uid, pfp_file_id), err
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return createLoginLinks(pageURL, langCode), nil
+		}
+		slog.Error("Error while fetching user information", "err", err)
+		return "", err
+	}
+	accountPageURL := requesturl.TranslateURL("/en/user.html", nil, langCode)
+	return fmt.Sprintf(`<a href="%s?uid=%d"><h3>%s</h3><img src="%s"></a>`, accountPageURL, uid, username, pfp_file_id), nil
 }
 
 func pageGen(w http.ResponseWriter, req *http.Request) {
