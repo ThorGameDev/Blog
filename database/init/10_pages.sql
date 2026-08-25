@@ -56,6 +56,25 @@ INSERT INTO page_type (
     'http://nginx-frontend:8080/templates/signup.html'
 ),
 (
+    102,
+    'UserAccountPage',
+    '
+    {
+        "PageTitle": "Text",
+        "LangCode": "LangCode",
+        "LangTags": "LangTags",
+        "LangRedirects": "LangRedirects",
+        "ChangePassPrompt": "Text",
+        "OldPassPrompt": "Text",
+        "NewPassPrompt": "Text",
+        "ConfirmPassPrompt": "Text",
+        "UpdatePassPrompt": "Text",
+        "AccountDetails": "User.AccountDetails"
+    }
+    '::JSONB,
+    'http://nginx-frontend:8080/templates/user.html'
+),
+(
     200,
     'CreatorDashboard',
     '
@@ -98,6 +117,7 @@ INSERT INTO page_type (
 INSERT INTO pages (page_type_id, required_privilege) VALUES
 (100, 0),
 (101, 0),
+(102, 0),
 -- Set to 6 latter. 0 for testing (Because signing in every time is a pain)
 (200, 0),
 (201, 0),

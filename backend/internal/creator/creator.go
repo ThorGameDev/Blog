@@ -149,7 +149,7 @@ func addTranslation(w http.ResponseWriter, req *http.Request) {
 	translationSubstitutions := map[string]interface{}{
 		"PageTitle": req.PostForm.Get("pageTitle"),
 	}
-	
+
 	status, err := db.Pool.Exec(context.Background(),
 		`INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
 		($1, $2, $3, $4)`,

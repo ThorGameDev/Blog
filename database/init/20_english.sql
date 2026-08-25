@@ -14,19 +14,20 @@ INSERT INTO error_codes VALUES
 INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
 (1, 'en', '{ "PageTitle": "Login" }'::JSONB, '/login.html'),
 (2, 'en', '{ "PageTitle": "Signup" }'::JSONB, '/signup.html'),
+(3, 'en', '{ "PageTitle": "User" }'::JSONB, '/user.html'),
 (
-    3,
+    4,
     'en',
     '{ "PageTitle": "Creator Dashboard" }'::JSONB,
     '/creator/dashboard.html'
 ),
 (
-    4,
+    5,
     'en',
     '{ "PageTitle": "Editor" }'::JSONB,
     '/creator/editor.html'
 ),
-(5, 'en', '{ "PageTitle": "Page 1" }'::JSONB, '/blog/page1.html');
+(6, 'en', '{ "PageTitle": "Page 1" }'::JSONB, '/blog/page1.html');
 
 INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
 (
@@ -59,6 +60,19 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     3,
     '
     {
+        "ChangePassPrompt": "Change Password:",
+        "OldPassPrompt": "Old Password",
+        "NewPassPrompt": "New Password",
+        "ConfirmPassPrompt": "Confirm New Password",
+        "UpdatePassPrompt": "Update"
+    }
+    '::JSONB
+),
+(
+    '00',
+    4,
+    '
+    {
         "ManagePage": "Manage Page",
         "PermissionsPrompt": "Permissions",
         "SubmitPrompt": "Create New Page"
@@ -67,7 +81,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
 ),
 (
     '00',
-    4,
+    5,
     '
     {
         "SaveChangesPrompt": "Save Changes",
@@ -78,7 +92,7 @@ INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
     }
     '::JSONB
 ),
-('00', 5, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
-('01', 5, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
-('02', 5, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
-('03', 5, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
+('00', 6, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
+('01', 6, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
+('02', 6, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
+('03', 6, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);

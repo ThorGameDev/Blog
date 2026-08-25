@@ -17,7 +17,7 @@ COPY --chown=user:user go.mod go.sum ./
 RUN --mount=type=cache,target=/go/pkg/mod,uid=1000,gid=1000 \
     go mod download
 
-# Copy over the source code. 
+# Copy over the source code.
 COPY --chown=user:user . .
 
 # Compile the program
@@ -25,7 +25,7 @@ RUN --mount=type=cache,target=/go/pkg/mod,uid=1000,gid=1000 \
     --mount=type=cache,target=/home/user/.cache/go-build,uid=1000,gid=1000 \
     CGO_ENABLED=0 GOOS=linux go build -o /home/user/main ./cmd/api
 
-# Start the run stage. 
+# Start the run stage.
 # It might be possible to run inside of the fronted docker file instead
 FROM scratch
 

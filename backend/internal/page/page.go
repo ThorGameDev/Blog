@@ -5,6 +5,7 @@ import (
 	"blogbackend/internal/page/errorcode"
 	"blogbackend/internal/page/parts/creator/dashboard"
 	"blogbackend/internal/page/parts/creator/editor"
+	userPage "blogbackend/internal/page/parts/user"
 	"blogbackend/internal/page/retrieve"
 	"blogbackend/internal/security/accounts/permissions"
 	"blogbackend/internal/security/whitelist"
@@ -101,14 +102,13 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 		slog.Error("Failed to get session ID cookie!", "err", err)
 		return "", err
 	}
-	var uid int
 	var username string
 	var pfp_file_id string
 	err = db.Pool.QueryRow(context.Background(),
-		`SELECT users.uid, username, pfp_file_id FROM users, sessions
+		`SELECT username, pfp_file_id FROM users, sessions
 			WHERE users.uid = sessions.uid
 			AND sessions.session_token = $1`,
-		session_id.Value).Scan(&uid, &username, &pfp_file_id)
+		session_id.Value).Scan(&username, &pfp_file_id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return createLoginLinks(pageURL, langCode), nil
@@ -117,7 +117,7 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 		return "", err
 	}
 	accountPageURL := requesturl.TranslateURL("/en/user.html", nil, langCode)
-	return fmt.Sprintf(`<a href="%s?uid=%d"><h3>%s</h3><img src="%s"></a>`, accountPageURL, uid, username, pfp_file_id), nil
+	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_file_id), nil
 }
 
 func pageGen(w http.ResponseWriter, req *http.Request) {
@@ -257,6 +257,14 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			finalSubstitutions[key] = dashboard.GeneratePageTypeDropdown()
 		case "Creator.Editor":
 			finalSubstitutions[key] = editor.GenerateEditor(langCode, req.URL.Query().Get("page"))
+		case "User.AccountDetails":
+			details, err := userPage.GenerateUserPage(req, pageURL, langCode)
+			if err != nil {
+				slog.Error("Error getting Account Details", "err", err)
+				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+				return
+			}
+			finalSubstitutions[key] = details
 		}
 	}
 

@@ -49,6 +49,9 @@ CREATE TABLE pages (
     PRIMARY KEY (page_id)
 );
 
+-- TODO: remove substitutions, and replace with page title
+-- It's too complicated to have a separate substitution type for translations and tests
+-- It's better to just define the required translation datatypes directly
 CREATE TABLE translations (
     translation_id SERIAL,
     page_id INT NOT NULL,

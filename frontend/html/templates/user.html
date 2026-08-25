@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="{{ LangCode }}">
+	<head>
+		<title>Blog: {{ PageTitle }}</title>
+		<meta charset="UTF-8">
+		<link rel="stylesheet" href="/style/site.css">
+		<link rel="stylesheet" href="/style/user.css">
+		<meta name="robots" content="noindex, follow">
+		{{ LangTags }}
+	</head>
+	<body>
+		{{ AccountDetails }}
+        <p>{{ ChangePassPrompt }}</p>
+        <form action="/api/user/changePassword?lang={{ LangCode }}" method="post" id="passwordForm">
+            <input type="password" id="oldPass" name="oldPass" placeholder="{{ OldPassPrompt }}">
+            <input type="password" id="newPass" name="newPass" placeholder="{{ NewPassPrompt }}">
+            <input type="password" id="confirmPass" name="confirmPass" placeholder="{{ ConfirmPassPrompt }}">
+            <button type="submit">{{ UpdatePassPrompt }}</button>
+        </form>
+		{{ LangRedirects }}
+	</body>
+</html>

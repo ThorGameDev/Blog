@@ -7,6 +7,7 @@ import (
 	"blogbackend/internal/db"
 	"blogbackend/internal/page"
 	"blogbackend/internal/security/accounts/auth"
+	userapi "blogbackend/internal/user"
 )
 
 func main() {
@@ -18,6 +19,7 @@ func main() {
 	auth.Register()
 	page.Register()
 	creator.Register()
+	userapi.Register()
 
 	http.ListenAndServe(":8090", nil)
 }
