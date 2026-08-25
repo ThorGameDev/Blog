@@ -1,7 +1,7 @@
-package whitelist
+package utils_url
 
 import (
-	"blogbackend/internal/db"
+	"blogbackend/internal/utils/db"
 	"context"
 	"errors"
 	"log/slog"

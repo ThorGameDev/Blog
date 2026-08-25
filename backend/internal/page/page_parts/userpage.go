@@ -1,7 +1,7 @@
-package userPage
+package page_parts
 
 import (
-	"blogbackend/internal/db"
+	"blogbackend/internal/utils/db"
 	"context"
 	"fmt"
 	"log/slog"

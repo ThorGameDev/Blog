@@ -3,11 +3,11 @@ package main
 import (
 	"net/http"
 
-	"blogbackend/internal/creator"
-	"blogbackend/internal/db"
+	"blogbackend/internal/api/api_creator"
+	"blogbackend/internal/api/api_security"
+	"blogbackend/internal/api/api_user"
 	"blogbackend/internal/page"
-	"blogbackend/internal/security/accounts/auth"
-	userapi "blogbackend/internal/user"
+	"blogbackend/internal/utils/db"
 )
 
 func main() {
@@ -16,10 +16,11 @@ func main() {
 	}
 	defer db.Close()
 
-	auth.Register()
 	page.Register()
-	creator.Register()
-	userapi.Register()
+
+	api_security.Register()
+	api_creator.Register()
+	api_user.Register()
 
 	http.ListenAndServe(":8090", nil)
 }

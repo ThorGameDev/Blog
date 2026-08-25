@@ -1,15 +1,12 @@
 package page
 
 import (
-	"blogbackend/internal/db"
-	"blogbackend/internal/page/errorcode"
-	"blogbackend/internal/page/parts/creator/dashboard"
-	"blogbackend/internal/page/parts/creator/editor"
-	userPage "blogbackend/internal/page/parts/user"
-	"blogbackend/internal/page/retrieve"
-	"blogbackend/internal/security/accounts/permissions"
-	"blogbackend/internal/security/whitelist"
-	"blogbackend/internal/utils/requesturl"
+	"blogbackend/internal/page/page_parts"
+	"blogbackend/internal/utils/db"
+	"blogbackend/internal/utils/utils_err"
+	"blogbackend/internal/utils/utils_fs"
+	"blogbackend/internal/utils/utils_sec"
+	"blogbackend/internal/utils/utils_url"
 	"context"
 	"errors"
 	"fmt"
@@ -23,7 +20,7 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
-func getLangTags(domainURL string, currentLangCode string, alternatePages []requesturl.LangURL) (string, error) {
+func getLangTags(domainURL string, currentLangCode string, alternatePages []utils_url.LangURL) (string, error) {
 	var langTagCluster strings.Builder
 	for _, val := range alternatePages {
 		toURL := domainURL + "/" + val.LangCode + val.PageURL
@@ -43,7 +40,7 @@ func getLangTags(domainURL string, currentLangCode string, alternatePages []requ
 	return langTagCluster.String(), err
 }
 
-func getLangLinks(currentLangCode string, alternatePages []requesturl.LangURL) (string, error) {
+func getLangLinks(currentLangCode string, alternatePages []utils_url.LangURL) (string, error) {
 	var langLinks strings.Builder
 	for _, val := range alternatePages {
 		if currentLangCode != val.LangCode {
@@ -55,7 +52,7 @@ func getLangLinks(currentLangCode string, alternatePages []requesturl.LangURL) (
 }
 
 func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
-	newURL := requesturl.TranslateURL("/##"+fromPage, queryParams, langCode)
+	newURL := utils_url.TranslateURL("/##"+fromPage, queryParams, langCode)
 	http.Redirect(w, req, newURL, http.StatusPermanentRedirect)
 }
 
@@ -116,12 +113,12 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 		slog.Error("Error while fetching user information", "err", err)
 		return "", err
 	}
-	accountPageURL := requesturl.TranslateURL("/en/user.html", nil, langCode)
+	accountPageURL := utils_url.TranslateURL("/en/user.html", nil, langCode)
 	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_file_id), nil
 }
 
 func pageGen(w http.ResponseWriter, req *http.Request) {
-	domainURL := requesturl.GetRequestURL(req)
+	domainURL := utils_url.GetRequestURL(req)
 
 	fullPageURL := req.URL.Path
 	langCode := fullPageURL[1:3]
@@ -160,9 +157,9 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			http.Error(w, "No permissions to access page", http.StatusForbidden)
 			return
 		}
-		err = permissions.RequireLevel(sessionId.Value, requiredPrivilege)
+		err = utils_sec.RequireLevel(sessionId.Value, requiredPrivilege)
 		if err != nil {
-			http.Error(w, errorcode.CodeToMessage(err.Error(), langCode), http.StatusForbidden)
+			http.Error(w, utils_err.CodeToMessage(err.Error(), langCode), http.StatusForbidden)
 			return
 		}
 	}
@@ -186,7 +183,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	altURLs, err := requesturl.GetAlternateURLs(pageURL, langCode, queryParams)
+	altURLs, err := utils_url.GetAlternateURLs(pageURL, langCode, queryParams)
 	if err != nil {
 		slog.Error("Failure getting alternate URLs!", "err", err)
 		http.Error(w, "Failure getting alternate URLs", http.StatusNotFound)
@@ -219,7 +216,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		case "Errors":
 			errorURL := req.URL.Query().Get("err")
 			if errorURL != "" {
-				errorMessage := errorcode.CodeToMessage(errorURL, langCode)
+				errorMessage := utils_err.CodeToMessage(errorURL, langCode)
 				finalSubstitutions[key] = html.EscapeString(errorMessage)
 			} else {
 				finalSubstitutions[key] = ""
@@ -233,7 +230,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			}
 			finalSubstitutions[key] = details
 		case "ReturnURL":
-			returnURL := whitelist.SanitizeURL(req.URL.Query().Get("from"))
+			returnURL := utils_url.SanitizeURL(req.URL.Query().Get("from"))
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
 		case "Text", "TemplateText", "Content":
@@ -246,7 +243,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				finalSubstitutions[key] = ""
 			}
 		case "Creator.Dashboard":
-			dashboardData, err := dashboard.GenerateCreatorDashboard(langCode)
+			dashboardData, err := page_parts.GenerateCreatorDashboard(langCode)
 			if err != nil {
 				slog.Error("Error while creating creator dashboard", "err", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -254,11 +251,11 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			}
 			finalSubstitutions[key] = dashboardData
 		case "Creator.PageTypeDropdown":
-			finalSubstitutions[key] = dashboard.GeneratePageTypeDropdown()
+			finalSubstitutions[key] = page_parts.GeneratePageTypeDropdown()
 		case "Creator.Editor":
-			finalSubstitutions[key] = editor.GenerateEditor(langCode, req.URL.Query().Get("page"))
+			finalSubstitutions[key] = page_parts.GenerateEditor(langCode, req.URL.Query().Get("page"))
 		case "User.AccountDetails":
-			details, err := userPage.GenerateUserPage(req, pageURL, langCode)
+			details, err := page_parts.GenerateUserPage(req, pageURL, langCode)
 			if err != nil {
 				slog.Error("Error getting Account Details", "err", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -278,7 +275,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Get base page
-	pageData, err := retrieve.RetrievePage(templateUrl)
+	pageData, err := utils_fs.RetrievePage(templateUrl)
 	if err != nil {
 		slog.Error("Error fetching page", "url", templateUrl, "err", err)
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

@@ -1,8 +1,8 @@
-package permissions
+package utils_sec
 
 import (
-	"blogbackend/internal/db"
-	"blogbackend/internal/page/errorcode"
+	"blogbackend/internal/utils/db"
+	"blogbackend/internal/utils/utils_err"
 	"context"
 	"errors"
 	"log/slog"
@@ -25,10 +25,10 @@ func PermissionLevel(sessionID string) (int, error) {
 	err := db.Pool.QueryRow(context.Background(), "SELECT privilege FROM users, sessions WHERE session_token = $1 AND sessions.uid = users.uid", sessionID).Scan(&privilege)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return 0, errors.New(errorcode.SessionExpired)
+			return 0, errors.New(utils_err.SessionExpired)
 		} else {
 			slog.Error("Failed to get privilege from user. ", "err", err)
-			return 0, errors.New(errorcode.InternalError)
+			return 0, errors.New(utils_err.InternalError)
 		}
 	}
 
@@ -43,5 +43,5 @@ func RequireLevel(sessionID string, minimum int) error {
 	if level >= minimum {
 		return nil
 	}
-	return errors.New(errorcode.NoPermissions)
+	return errors.New(utils_err.NoPermissions)
 }

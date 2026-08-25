@@ -1,7 +1,7 @@
-package errorcode
+package utils_err
 
 import (
-	"blogbackend/internal/db"
+	"blogbackend/internal/utils/db"
 	"context"
 	"errors"
 	"log/slog"

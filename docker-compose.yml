@@ -7,6 +7,8 @@ services:
       dockerfile: Dockerfile
       args:
         - MODE=dev
+    volumes:
+      - uploads:/usr/share/nginx/html/uploads
     ports:
       - "8080:8080"
     depends_on:
@@ -20,8 +22,10 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    env_file: 
+    env_file:
       - database/postgres.env
+    volumes:
+      - uploads:/home/user/uploads
     depends_on:
       db:
         condition: service_healthy
@@ -35,10 +39,10 @@ services:
       context: ./database/
       dockerfile: Dockerfile
     restart: always
-    env_file: 
+    env_file:
       - database/postgres.env
-    # volumes: # Remove for testing the init
-    #   - pgdata:/var/lib/postgresql
+    volumes:
+      - pgdata:/var/lib/postgresql
     ports:
       - "127.0.0.1:5432:5432"
     networks:
@@ -51,4 +55,5 @@ networks:
     driver: bridge
 
 volumes:
+  uploads:
   pgdata:

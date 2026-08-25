@@ -1,8 +1,8 @@
-package creator
+package api_creator
 
 import (
-	"blogbackend/internal/db"
-	"blogbackend/internal/utils/requesturl"
+	"blogbackend/internal/utils/db"
+	"blogbackend/internal/utils/utils_url"
 	"context"
 	"errors"
 	"fmt"
@@ -40,7 +40,7 @@ func newPage(w http.ResponseWriter, req *http.Request) {
 	pageQueryParam := fmt.Sprintf("?page=%d", pageId)
 
 	currentTranslation := req.URL.Query().Get("lang")
-	redirectURL := requesturl.TranslateURL("/en/creator/editor.html", nil, currentTranslation)
+	redirectURL := utils_url.TranslateURL("/en/creator/editor.html", nil, currentTranslation)
 
 	http.Redirect(w, req, redirectURL+pageQueryParam, http.StatusSeeOther)
 }

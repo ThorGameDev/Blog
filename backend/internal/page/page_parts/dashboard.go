@@ -1,9 +1,9 @@
-package dashboard
+package page_parts
 
 import (
-	"blogbackend/internal/db"
-	"blogbackend/internal/page/errorcode"
-	"blogbackend/internal/utils/requesturl"
+	"blogbackend/internal/utils/db"
+	"blogbackend/internal/utils/utils_err"
+	"blogbackend/internal/utils/utils_url"
 	"context"
 	"fmt"
 	"log/slog"
@@ -11,7 +11,7 @@ import (
 )
 
 func createAnalytics(pageid int, langCode string) string {
-	return fmt.Sprintf(`<div class="analytics"><p>%s</p></div>`, errorcode.CodeToMessage(errorcode.NoAnalytics, langCode))
+	return fmt.Sprintf(`<div class="analytics"><p>%s</p></div>`, utils_err.CodeToMessage(utils_err.NoAnalytics, langCode))
 }
 
 func GeneratePageTypeDropdown() string {
@@ -42,7 +42,7 @@ func GeneratePageTypeDropdown() string {
 }
 
 func GenerateCreatorDashboard(langCode string) (string, error) {
-	editorLink := requesturl.TranslateURL("/en/creator/editor.html", nil, langCode)
+	editorLink := utils_url.TranslateURL("/en/creator/editor.html", nil, langCode)
 
 	pageRows, err := db.Pool.Query(context.Background(),
 		`SELECT page_id, type_name

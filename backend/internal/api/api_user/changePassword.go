@@ -1,7 +1,7 @@
-package userapi
+package api_user
 
 import (
-	"blogbackend/internal/db"
+	"blogbackend/internal/utils/db"
 	"context"
 	"log/slog"
 	"net/http"
@@ -46,9 +46,9 @@ func changePassword(w http.ResponseWriter, req *http.Request) {
 		`SELECT users.password_hash, users.uid FROM users, sessions
 			WHERE session_token = $1
 			AND sessions.uid = users.uid`,
-	session_id.Value).Scan(&pash, &uid)
+		session_id.Value).Scan(&pash, &uid)
 	if err != nil {
-		if err == pgx.ErrNoRows{
+		if err == pgx.ErrNoRows {
 			http.Error(w, "Session Expired", http.StatusBadRequest)
 			return
 		}

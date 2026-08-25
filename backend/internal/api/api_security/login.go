@@ -1,10 +1,9 @@
-package auth
+package api_security
 
 import (
-	"blogbackend/internal/db"
-	"blogbackend/internal/page/errorcode"
-	"blogbackend/internal/security/whitelist"
-	"blogbackend/internal/utils/requesturl"
+	"blogbackend/internal/utils/db"
+	"blogbackend/internal/utils/utils_err"
+	"blogbackend/internal/utils/utils_url"
 	"context"
 	"crypto/rand"
 	"encoding/base64"
@@ -25,15 +24,15 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 	err := db.Pool.QueryRow(context.Background(), "SELECT password_hash, uid FROM users WHERE username = $1", username).Scan(&pash, &uid)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return errors.New(errorcode.IncorrectUsername)
+			return errors.New(utils_err.IncorrectUsername)
 		} else {
 			slog.Error("Failed to check the existence of the account. ", "err", err)
-			return errors.New(errorcode.InternalError)
+			return errors.New(utils_err.InternalError)
 		}
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(pash), []byte(password)); err != nil {
-		return errors.New(errorcode.IncorrectPassword)
+		return errors.New(utils_err.IncorrectPassword)
 	}
 
 	// Login good, proceed to setting session
@@ -50,11 +49,11 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 		cookie, uid, expireDate)
 	if err != nil {
 		slog.Error("Failed to create account! ", "err", err)
-		return errors.New(errorcode.InternalError)
+		return errors.New(utils_err.InternalError)
 	}
 	if status.RowsAffected() != 1 {
 		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
-		return errors.New(errorcode.InternalError)
+		return errors.New(utils_err.InternalError)
 	}
 
 	sessionCookie := &http.Cookie{
@@ -72,23 +71,23 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 
 func createAccount(w http.ResponseWriter, username string, password string, confirmPass string) error {
 	if password != confirmPass {
-		return errors.New(errorcode.UnmatchedPasswords)
+		return errors.New(utils_err.UnmatchedPasswords)
 	}
 
 	var exists bool
 	err := db.Pool.QueryRow(context.Background(), "SELECT EXISTS(SELECT 1 FROM users WHERE username = $1)", username).Scan(&exists)
 	if err != nil {
 		slog.Error("Failed to check the existence of the account. ", "err", err)
-		return errors.New(errorcode.InternalError)
+		return errors.New(utils_err.InternalError)
 	}
 	if exists {
-		return errors.New(errorcode.AccountExists)
+		return errors.New(utils_err.AccountExists)
 	}
 
 	pash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		slog.Error("Error while hashing password.", "err", err)
-		return errors.New(errorcode.InternalError)
+		return errors.New(utils_err.InternalError)
 	}
 
 	status, err := db.Pool.Exec(context.Background(),
@@ -96,12 +95,12 @@ func createAccount(w http.ResponseWriter, username string, password string, conf
 		username, string(pash))
 	if err != nil {
 		slog.Error("Failed to create account! ", "err", err)
-		return errors.New(errorcode.InternalError)
+		return errors.New(utils_err.InternalError)
 	}
 
 	if status.RowsAffected() != 1 {
 		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
-		return errors.New(errorcode.InternalError)
+		return errors.New(utils_err.InternalError)
 	}
 
 	return loginTo(w, username, password)
@@ -121,7 +120,7 @@ func login(w http.ResponseWriter, req *http.Request) {
 
 	username := req.PostForm.Get("username")
 	password := req.PostForm.Get("password")
-	fromURL := whitelist.SanitizeURL(req.PostForm.Get("from"))
+	fromURL := utils_url.SanitizeURL(req.PostForm.Get("from"))
 	hasJS := req.PostForm.Get("hasJS")
 	currentTranslation := req.URL.Query().Get("lang")
 	if currentTranslation == "" {
@@ -131,13 +130,13 @@ func login(w http.ResponseWriter, req *http.Request) {
 	err = loginTo(w, username, password)
 	if err != nil {
 		if hasJS == "1" {
-			errMsg := errorcode.CodeToMessage(err.Error(), currentTranslation)
+			errMsg := utils_err.CodeToMessage(err.Error(), currentTranslation)
 			fmt.Fprintf(w, "%s", errMsg)
 		} else {
 			params := url.Values{}
 			params.Add("err", err.Error())
 			params.Add("from", fromURL)
-			translatedURL := requesturl.TranslateURL("/en/login.html", params, currentTranslation)
+			translatedURL := utils_url.TranslateURL("/en/login.html", params, currentTranslation)
 			http.Redirect(w, req, translatedURL, http.StatusSeeOther)
 		}
 		return
@@ -160,7 +159,7 @@ func signup(w http.ResponseWriter, req *http.Request) {
 
 	username := req.PostForm.Get("username")
 	password := req.PostForm.Get("password")
-	fromURL := whitelist.SanitizeURL(req.PostForm.Get("from"))
+	fromURL := utils_url.SanitizeURL(req.PostForm.Get("from"))
 	confirmPass := req.PostForm.Get("confirmPass")
 	hasJS := req.PostForm.Get("hasJS")
 	currentTranslation := req.URL.Query().Get("lang")
@@ -171,13 +170,13 @@ func signup(w http.ResponseWriter, req *http.Request) {
 	err = createAccount(w, username, password, confirmPass)
 	if err != nil {
 		if hasJS == "1" {
-			errMsg := errorcode.CodeToMessage(err.Error(), currentTranslation)
+			errMsg := utils_err.CodeToMessage(err.Error(), currentTranslation)
 			fmt.Fprintf(w, "%s", errMsg)
 		} else {
 			params := url.Values{}
 			params.Add("err", err.Error())
 			params.Add("from", fromURL)
-			translatedURL := requesturl.TranslateURL("/en/signup.html", params, currentTranslation)
+			translatedURL := utils_url.TranslateURL("/en/signup.html", params, currentTranslation)
 			http.Redirect(w, req, translatedURL, http.StatusSeeOther)
 		}
 		return
