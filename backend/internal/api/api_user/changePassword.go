@@ -83,7 +83,3 @@ func changePassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 }
-
-func Register() {
-	http.HandleFunc("/api/user/changePassword", changePassword)
-}
