@@ -49,14 +49,11 @@ CREATE TABLE pages (
     PRIMARY KEY (page_id)
 );
 
--- TODO: remove substitutions, and replace with page title
--- It's too complicated to have a separate substitution type for translations and tests
--- It's better to just define the required translation datatypes directly
 CREATE TABLE translations (
     translation_id SERIAL,
     page_id INT NOT NULL,
     lang_code VARCHAR(2) NOT NULL,
-    substitutions JSONB NOT NULL,
+    title VARCHAR(32) NOT NULL,
     url VARCHAR(32) NOT NULL,
     UNIQUE (page_id, lang_code),
     UNIQUE (url),

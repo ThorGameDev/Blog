@@ -65,7 +65,7 @@ func createLoginLinks(fromPageUrl string, langCode string) string {
 	var signupURL string
 	var signupTitle string
 
-	const sql_query string = `SELECT url, substitutions->>'PageTitle'
+	const sql_query string = `SELECT url, title
 		FROM translations
 		WHERE page_id = (
 			SELECT page_id FROM translations
@@ -129,14 +129,16 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	var substitutionTypes map[string]string
 	var templateUrl string
 	var requiredPrivilege int
+	var title string
+	var translationId int
 	err := db.Pool.QueryRow(context.Background(),
-		`SELECT substitution_types, template_url, required_privilege 
+		`SELECT substitution_types, template_url, required_privilege, title, translation_id
 			FROM page_type, pages, translations
 			WHERE pages.page_type_id = page_type.page_type_id
-			AND translations.page_id = pages.page_id 
+			AND translations.page_id = pages.page_id
 			AND lang_code = $1
 			AND url = $2`,
-		langCode, pageURL).Scan(&substitutionTypes, &templateUrl, &requiredPrivilege)
+		langCode, pageURL).Scan(&substitutionTypes, &templateUrl, &requiredPrivilege, &title, &translationId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			badURLRedirect(w, req, pageURL, queryParams, langCode)
@@ -165,16 +167,12 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Get substitutions
-	var baseSubstitutions map[string]string
-	var testSubstitutions map[string]string
+	var substitutions map[string]string
 	err = db.Pool.QueryRow(context.Background(),
-		`SELECT substitutions, test_substitutions
-			FROM translations, tests
-			WHERE translations.translation_id = tests.translation_id
-			AND lang_code = $1
-			AND url = $2
-			ORDER BY (test_id = $3) DESC`,
-		langCode, pageURL, queryParams.Get("test")).Scan(&baseSubstitutions, &testSubstitutions)
+		`SELECT test_substitutions FROM tests
+			WHERE translation_id = $1
+			ORDER BY (test_id = $2) DESC`,
+		translationId, queryParams.Get("test")).Scan(&substitutions)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			slog.Error("Critical SQL error while getting page content", "err", err)
@@ -195,6 +193,8 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		switch val {
 		case "URL":
 			finalSubstitutions[key] = url.PathEscape(fullPageURL)
+		case "Title":
+			finalSubstitutions[key] = title
 		case "LangCode":
 			finalSubstitutions[key] = langCode
 		case "LangTags":
@@ -234,9 +234,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
 		case "Text", "TemplateText", "Content":
-			if substitutionValue, ok := testSubstitutions[key]; ok {
-				finalSubstitutions[key] = substitutionValue
-			} else if substitutionValue, ok := baseSubstitutions[key]; ok {
+			if substitutionValue, ok := substitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
 			} else {
 				slog.Warn("Untranslated content in", "url", fullPageURL, "key", key)

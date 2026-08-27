@@ -11,23 +11,23 @@ INSERT INTO error_codes VALUES
 ('SesExp', 'en', 'Your session expired!'),
 ('NoPerm', 'en', 'You do not have enough permissions');
 
-INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
-(1, 'en', '{ "PageTitle": "Login" }'::JSONB, '/login.html'),
-(2, 'en', '{ "PageTitle": "Signup" }'::JSONB, '/signup.html'),
-(3, 'en', '{ "PageTitle": "User" }'::JSONB, '/user.html'),
+INSERT INTO translations (page_id, lang_code, title, url) VALUES
+(1, 'en', 'Login', '/login.html'),
+(2, 'en', 'Signup', '/signup.html'),
+(3, 'en', 'User', '/user.html'),
 (
     4,
     'en',
-    '{ "PageTitle": "Creator Dashboard" }'::JSONB,
+    'Creator Dashboard',
     '/creator/dashboard.html'
 ),
 (
     5,
     'en',
-    '{ "PageTitle": "Editor" }'::JSONB,
+    'Editor',
     '/creator/editor.html'
 ),
-(6, 'en', '{ "PageTitle": "Page 1" }'::JSONB, '/blog/page1.html');
+(6, 'en', 'Page 1', '/blog/page1.html');
 
 INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
 (

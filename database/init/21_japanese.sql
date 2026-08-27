@@ -19,23 +19,23 @@ INSERT INTO error_codes VALUES
 -- Ensure that the ordering of the translations is independent of the English order for initialization
 ALTER SEQUENCE translations_translation_id_seq RESTART WITH 101;
 
-INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
-(1, 'ja', '{ "PageTitle": "ログイン" }'::JSONB, '/ログイン.html'),
-(2, 'ja', '{ "PageTitle": "登録" }'::JSONB, '/とうろく.html'),
-(3, 'ja', '{ "PageTitle": "ユーザー" }'::JSONB, '/ユーザー.html'),
+INSERT INTO translations (page_id, lang_code, title, url) VALUES
+(1, 'ja', 'ログイン', '/ログイン.html'),
+(2, 'ja', '登録', '/とうろく.html'),
+(3, 'ja', 'ユーザー', '/ユーザー.html'),
 (
     4,
     'ja',
-    '{ "PageTitle": "クリエイターダッシュボード" }'::JSONB,
+    'クリエイターダッシュボード',
     '/クリエイター/ダッシュボード.html'
 ),
 (
     5,
     'ja',
-    '{ "PageTitle": "エディタ" }'::JSONB,
+    'エディタ',
     '/クリエイター/エディタ.html'
 ),
-(6, 'ja', '{ "PageTitle": "ページ１" }'::JSONB, '/ブログ/ページ１.html');
+(6, 'ja', 'ページ１', '/ブログ/ページ１.html');
 
 INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
 (

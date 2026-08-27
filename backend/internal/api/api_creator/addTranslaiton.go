@@ -25,14 +25,12 @@ func addTranslation(w http.ResponseWriter, req *http.Request) {
 
 	translationLangCode := req.PostForm.Get("language")
 	translationUrl := req.PostForm.Get("url")
-	translationSubstitutions := map[string]interface{}{
-		"PageTitle": req.PostForm.Get("pageTitle"),
-	}
+	translationTitle := req.PostForm.Get("pageTitle")
 
 	status, err := db.Pool.Exec(context.Background(),
-		`INSERT INTO translations (page_id, lang_code, substitutions, url) VALUES
+		`INSERT INTO translations (page_id, lang_code, title, url) VALUES
 		($1, $2, $3, $4)`,
-		pageId, translationLangCode, translationSubstitutions, translationUrl)
+		pageId, translationLangCode, translationTitle, translationUrl)
 	if err != nil {
 		slog.Error("Failed to modify page!", "err", err)
 		http.Error(w, "Failed to modify page!", http.StatusInternalServerError)

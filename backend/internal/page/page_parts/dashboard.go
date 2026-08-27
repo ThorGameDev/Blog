@@ -73,9 +73,7 @@ func GenerateCreatorDashboard(langCode string) (string, error) {
 
 		// Get data on each translation in block
 		translationRows, err := db.Pool.Query(context.Background(),
-			`SELECT translations.url,
-					translations.substitutions->>'PageTitle',
-					translations.lang_code
+			`SELECT translations.url, title, translations.lang_code
 				FROM pages, translations
 				WHERE translations.page_id = pages.page_id
 				AND pages.page_id = $1

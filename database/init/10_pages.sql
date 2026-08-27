@@ -6,7 +6,7 @@ INSERT INTO page_type (
     'BlogPage',
     '
     {
-        "PageTitle": "Text",
+        "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
@@ -21,7 +21,7 @@ INSERT INTO page_type (
     'LoginPage',
     '
     {
-        "PageTitle": "Text",
+        "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
@@ -40,7 +40,7 @@ INSERT INTO page_type (
     'SignupPage',
     '
     {
-        "PageTitle": "Text",
+        "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
@@ -60,7 +60,7 @@ INSERT INTO page_type (
     'UserAccountPage',
     '
     {
-        "PageTitle": "Text",
+        "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
@@ -79,7 +79,7 @@ INSERT INTO page_type (
     'CreatorDashboard',
     '
     {
-        "PageTitle": "Text",
+        "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
@@ -98,7 +98,7 @@ INSERT INTO page_type (
     'PageEditor',
     '
     {
-        "PageTitle": "Text",
+        "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",

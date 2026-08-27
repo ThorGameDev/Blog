@@ -76,7 +76,7 @@ func GenerateEditor(langCode string, pageId string) string {
 	translationRows, err := db.Pool.Query(context.Background(),
 		`SELECT translations.translation_id,
 				translations.url,
-				translations.substitutions,
+				translations.title,
 				translations.lang_code
 			FROM pages, translations
 			WHERE translations.page_id = pages.page_id
@@ -92,16 +92,16 @@ func GenerateEditor(langCode string, pageId string) string {
 	for translationRows.Next() {
 		var translationId int
 		var rowURL string
-		var rowTranslationSubstitutions map[string]string
+		var rowTitle string
 		var rowLangCode string
-		if err := translationRows.Scan(&translationId, &rowURL, &rowTranslationSubstitutions, &rowLangCode); err != nil {
+		if err := translationRows.Scan(&translationId, &rowURL, &rowTitle, &rowLangCode); err != nil {
 			slog.Error("Critical Error!", "err", err)
 			return ""
 		}
 		rowURL = esc(rowURL)
 		rowLangCode = esc(rowLangCode)
 
-		fmt.Fprintf(&editorData, `<h3>%s</h3>`, rowTranslationSubstitutions["PageTitle"])
+		fmt.Fprintf(&editorData, `<h3>%s</h3>`, rowTitle)
 		fmt.Fprintf(&editorData, `<form action="/api/creator/addTest?translation=%d" method="post">`, translationId)
 		editorData.WriteString(`<button type="submit">{{ AddTestPrompt }}</button></form></div>`)
 		editorData.WriteString(`</form>`)
@@ -150,23 +150,16 @@ func GenerateEditor(langCode string, pageId string) string {
 				if subType == "Text" || subType == "TemplateText" || subType == "Content" {
 					inputFieldId := fmt.Sprintf("i-%s-%s", escKey, versionCode)
 					fmt.Fprintf(&comparisonData, `<label for="%s">%s</label>`, inputFieldId, escKey)
-					translationVal, ok := rowTranslationSubstitutions[key]
 					testVal := esc(testSubstitutions[key])
-					var additionalAttributes string
-					if ok {
-						// Maybe it's silly, but in keeping with the desire to minify everything, the separating space should be here instead of the other string
-						additionalAttributes = " disabled"
-						testVal = esc(translationVal)
-					}
 
 					switch subType {
 					case "Text":
-						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s"%s>`, escKey, inputFieldId, testVal, additionalAttributes)
+						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s">`, escKey, inputFieldId, testVal)
 					case "TemplateText":
 						// Will be different eventually
-						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s"%s>`, escKey, inputFieldId, testVal, additionalAttributes)
+						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s">`, escKey, inputFieldId, testVal)
 					case "Content":
-						fmt.Fprintf(&comparisonData, `<textarea name="%s" id="%s"%s>%s</textarea>`, escKey, inputFieldId, additionalAttributes, esc(testSubstitutions[key]))
+						fmt.Fprintf(&comparisonData, `<textarea name="%s" id="%s">%s</textarea>`, escKey, inputFieldId, esc(testSubstitutions[key]))
 					}
 					comparisonData.WriteString(`</br>`)
 				}
