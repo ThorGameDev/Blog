@@ -10,10 +10,8 @@ This is a Work In Progress Blog engine to host my own personal blog.
 - Simple user accounts
 - SQL page management
 - Simple Bilingual page translation system
-- Bilingual English 日本語 page translations
 
 ## Planned Features (Roughly in planned order)
-- Bilingual English 日本語 full translations
 - User accounts
 - Comment threads
 - AB testing system

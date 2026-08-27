@@ -64,7 +64,9 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
         "OldPassPrompt": "Old Password",
         "NewPassPrompt": "New Password",
         "ConfirmPassPrompt": "Confirm New Password",
-        "UpdatePassPrompt": "Update"
+        "UpdatePassPrompt": "Update",
+        "SelectPFPPrompt": "Change Profile Picture",
+        "UpdatePFPPrompt": "Update"
     }
     '::JSONB
 ),

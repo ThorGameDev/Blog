@@ -10,13 +10,18 @@
 	</head>
 	<body>
 		{{ AccountDetails }}
-        <p>{{ ChangePassPrompt }}</p>
-        <form action="/api/user/changePassword?lang={{ LangCode }}" method="post" id="passwordForm">
-            <input type="password" id="oldPass" name="oldPass" placeholder="{{ OldPassPrompt }}">
-            <input type="password" id="newPass" name="newPass" placeholder="{{ NewPassPrompt }}">
-            <input type="password" id="confirmPass" name="confirmPass" placeholder="{{ ConfirmPassPrompt }}">
-            <button type="submit">{{ UpdatePassPrompt }}</button>
-        </form>
+		<p>{{ SelectPFPPrompt }}</p>
+		<form action="/api/user/changePFP?lang={{ LangCode }}" method="post" enctype="multipart/form-data">
+            <input type="file" id="newPFP" name="newPFP" accept="image/*">
+			<button type="submit">{{ UpdatePFPPrompt }}</button>
+		</form>
+		<p>{{ ChangePassPrompt }}</p>
+		<form action="/api/user/changePassword?lang={{ LangCode }}" method="post" id="passwordForm">
+			<input type="password" id="oldPass" name="oldPass" placeholder="{{ OldPassPrompt }}">
+			<input type="password" id="newPass" name="newPass" placeholder="{{ NewPassPrompt }}">
+			<input type="password" id="confirmPass" name="confirmPass" placeholder="{{ ConfirmPassPrompt }}">
+			<button type="submit">{{ UpdatePassPrompt }}</button>
+		</form>
 		{{ LangRedirects }}
 	</body>
 </html>

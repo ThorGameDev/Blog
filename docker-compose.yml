@@ -25,7 +25,7 @@ services:
     env_file:
       - database/postgres.env
     volumes:
-      - uploads:/home/user/uploads
+      - uploads:/uploads
     depends_on:
       db:
         condition: service_healthy

@@ -72,7 +72,9 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
         "OldPassPrompt": "古いパスワード",
         "NewPassPrompt": "新しいパスワード",
         "ConfirmPassPrompt": "パスワード確認",
-        "UpdatePassPrompt": "更新"
+        "UpdatePassPrompt": "更新",
+        "SelectPFPPrompt": "写真を替える",
+        "UpdatePFPPrompt": "更新"
     }
     '::JSONB
 ),

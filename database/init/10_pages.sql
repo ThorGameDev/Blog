@@ -69,6 +69,8 @@ INSERT INTO page_type (
         "NewPassPrompt": "Text",
         "ConfirmPassPrompt": "Text",
         "UpdatePassPrompt": "Text",
+        "SelectPFPPrompt": "Text",
+        "UpdatePFPPrompt": "Text",
         "AccountDetails": "User.AccountDetails"
     }
     '::JSONB,
