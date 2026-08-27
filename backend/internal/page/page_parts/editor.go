@@ -135,12 +135,7 @@ func GenerateEditor(langCode string, pageId string) string {
 			// Create page comparison display
 			fmt.Fprintf(&comparisonData, `<div id="e-%s" class="directEditor">`, versionCode)
 
-			// TODO: secure the iframe
-			// Sandbox is probably not needed, on account of the fact that this page is all site controlled
-			// But chances are, removing it will allow for an xss privilege escalation.
-			// Its one thing to hack the users, but It's another to have access to the page generator.
-			// But I'm removing the sandbox to allow for font loading. Currently, there are CORS errors
-			fmt.Fprintf(&comparisonData, `<div class="iframeHold"><iframe src="/%s%s?test=%s"></iframe></div>`, rowLangCode, rowURL, testId)
+			fmt.Fprintf(&comparisonData, `<div class="iframeHold"><iframe src="/%s%s?test=%s" sandbox=allow-same-origin></iframe></div>`, rowLangCode, rowURL, testId)
 
 			fmt.Fprintf(&comparisonData, `<form action="/api/creator/editTest?translation=%d&test=%s" method="post">`, translationId, testId)
 			// Create the editor
