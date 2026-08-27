@@ -109,7 +109,7 @@ func GenerateEditor(langCode string, pageId string) string {
 		fmt.Fprintf(&editorData, `<a hreflang="%s" href="/%s%s">%s</a>`, rowLangCode, rowLangCode, rowURL, rowURL)
 
 		testRows, err := db.Pool.Query(context.Background(),
-			`SELECT test_id, test_substitutions FROM tests
+			`SELECT test_id, substitutions FROM tests
 				WHERE translation_id = $1`,
 			translationId)
 		if err != nil {

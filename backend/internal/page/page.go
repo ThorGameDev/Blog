@@ -169,7 +169,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	// Get substitutions
 	var substitutions map[string]string
 	err = db.Pool.QueryRow(context.Background(),
-		`SELECT test_substitutions FROM tests
+		`SELECT substitutions FROM tests
 			WHERE translation_id = $1
 			ORDER BY (test_id = $2) DESC`,
 		translationId, queryParams.Get("test")).Scan(&substitutions)

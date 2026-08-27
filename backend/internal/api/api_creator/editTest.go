@@ -34,7 +34,7 @@ func editTest(w http.ResponseWriter, req *http.Request) {
 
 	status, err := db.Pool.Exec(context.Background(),
 		`UPDATE tests
-			SET test_substitutions = $1
+			SET substitutions = $1
 			WHERE translation_id = $2
 			AND test_id = $3`,
 		finalSubstitutions, translationId, testId)

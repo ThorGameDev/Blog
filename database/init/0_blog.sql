@@ -65,7 +65,7 @@ CREATE TABLE translations (
 CREATE TABLE tests (
     test_id VARCHAR(2) NOT NULL,
     translation_id INT NOT NULL,
-    test_substitutions JSONB NOT NULL,
+    substitutions JSONB NOT NULL,
     FOREIGN KEY (translation_id) REFERENCES translations(translation_id),
     PRIMARY KEY (test_id, translation_id)
 );

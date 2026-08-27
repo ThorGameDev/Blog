@@ -37,7 +37,7 @@ INSERT INTO translations (page_id, lang_code, title, url) VALUES
 ),
 (6, 'ja', 'ページ１', '/ブログ/ページ１.html');
 
-INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
+INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 (
     '00',
     101,
