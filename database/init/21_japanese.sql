@@ -39,7 +39,7 @@ INSERT INTO translations (page_id, lang_code, title, url) VALUES
 
 INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 (
-    '00',
+    '01',
     101,
     '
     {
@@ -51,7 +51,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     102,
     '
     {
@@ -64,7 +64,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     103,
     '
     {
@@ -79,7 +79,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     104,
     '
     {
@@ -90,7 +90,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     105,
     '
     {
@@ -102,5 +102,5 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     }
     '::JSONB
 ),
-('00', 106, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
-('01', 106, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);
+('01', 106, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
+('02', 106, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);

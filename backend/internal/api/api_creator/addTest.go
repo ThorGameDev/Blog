@@ -6,22 +6,15 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-
-	"github.com/jackc/pgx/v5"
 )
 
 func nextTestId(translationId string) (string, error) {
 	// get previous testId from sql
 	var previousTestId string
 	err := db.Pool.QueryRow(context.Background(),
-		`SELECT test_id FROM tests
-			WHERE translation_id = $1
-			ORDER BY test_id DESC`,
+		`SELECT COALESCE(MAX(test_id), '00') FROM tests WHERE translation_id = $1`,
 		translationId).Scan(&previousTestId)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			return "00", nil
-		}
 		return "", err
 	}
 
@@ -78,7 +71,7 @@ func addTest(w http.ResponseWriter, req *http.Request) {
 	}
 
 	status, err := db.Pool.Exec(context.Background(),
-		`INSERT INTO tests (test_id, translation_id, test_substitutions) VALUES
+		`INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 			($1, $2, '{}'::JSONB)`,
 		testId, translationId)
 	if err != nil {

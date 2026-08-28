@@ -31,7 +31,7 @@ INSERT INTO translations (page_id, lang_code, title, url) VALUES
 
 INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 (
-    '00',
+    '01',
     1,
     '
     {
@@ -43,7 +43,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     2,
     '
     {
@@ -56,7 +56,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     3,
     '
     {
@@ -71,7 +71,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     4,
     '
     {
@@ -82,7 +82,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 (
-    '00',
+    '01',
     5,
     '
     {
@@ -94,7 +94,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     }
     '::JSONB
 ),
-('00', 6, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
-('01', 6, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
-('02', 6, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
-('03', 6, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
+('01', 6, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
+('02', 6, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
+('03', 6, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
+('04', 6, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
