@@ -22,12 +22,14 @@ func GenerateUserPage(req *http.Request, pageURL string, langCode string) (strin
 	}
 	var uid int
 	var username string
-	var pfp_file_id string
+	var pfp_url string
 	err = db.Pool.QueryRow(context.Background(),
-		`SELECT users.uid, username, pfp_file_id FROM users, sessions
+		`SELECT users.uid, username, profile_pictures.url
+			FROM users, sessions, profile_pictures
 			WHERE users.uid = sessions.uid
-			AND sessions.session_token = $1`,
-		session_id.Value).Scan(&uid, &username, &pfp_file_id)
+			AND sessions.session_token = $1
+			AND profile_pictures.pfp_id = users.pfp_id`,
+		session_id.Value).Scan(&uid, &username, &pfp_url)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return "<h1>Session Expired!</h1>", nil
@@ -37,6 +39,6 @@ func GenerateUserPage(req *http.Request, pageURL string, langCode string) (strin
 	}
 	var pageData strings.Builder
 	fmt.Fprintf(&pageData, `<h1>%s</h1>`, username)
-	fmt.Fprintf(&pageData, `<img src="%s">`, pfp_file_id)
+	fmt.Fprintf(&pageData, `<img src="%s">`, pfp_url)
 	return pageData.String(), nil
 }

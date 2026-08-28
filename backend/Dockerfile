@@ -9,6 +9,7 @@ RUN addgroup -S user --gid 1000 && adduser -S user -G user -u 1000
 
 # Create the uploads volume with proper permissions
 RUN mkdir -p /uploads && chown -R user:user /uploads
+RUN mkdir -p /workdir && chown -R user:user /workdir
 
 # switch to user
 USER user
@@ -46,6 +47,7 @@ COPY --chown=user:user --from=builder /home/user/main /home/user/main
 
 # Copy the uploads folder over
 COPY --chown=user:user --from=builder /uploads /uploads
+COPY --chown=user:user --from=builder /workdir /workdir
 
 # Run it
 CMD ["/home/user/main"]

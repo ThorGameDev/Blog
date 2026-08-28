@@ -1,4 +1,4 @@
-INSERT INTO page_type (
+INSERT INTO page_types (
     page_type_id, type_name, substitution_types, template_url
 ) VALUES
 (

@@ -36,7 +36,7 @@ func createAccount(w http.ResponseWriter, username string, password string, conf
 	}
 
 	status, err := db.Pool.Exec(context.Background(),
-		"INSERT INTO users (username, password_hash, pfp_file_id, privilege) VALUES ($1, $2, 'file', 1)",
+		"INSERT INTO users (username, password_hash, pfp_id, privilege) VALUES ($1, $2, 1, 1)",
 		username, string(pash))
 	if err != nil {
 		slog.Error("Failed to create account! ", "err", err)

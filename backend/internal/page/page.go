@@ -100,12 +100,14 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 		return "", err
 	}
 	var username string
-	var pfp_file_id string
+	var pfp_url string
 	err = db.Pool.QueryRow(context.Background(),
-		`SELECT username, pfp_file_id FROM users, sessions
+		`SELECT username, profile_pictures.url
+			FROM users, sessions, profile_pictures
 			WHERE users.uid = sessions.uid
-			AND sessions.session_token = $1`,
-		session_id.Value).Scan(&username, &pfp_file_id)
+			AND sessions.session_token = $1
+			AND profile_pictures.pfp_id = users.pfp_id`,
+		session_id.Value).Scan(&username, &pfp_url)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return createLoginLinks(pageURL, langCode), nil
@@ -114,7 +116,7 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 		return "", err
 	}
 	accountPageURL := utils_url.TranslateURL("/en/user.html", nil, langCode)
-	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_file_id), nil
+	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_url), nil
 }
 
 func pageGen(w http.ResponseWriter, req *http.Request) {
@@ -133,8 +135,8 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	var translationId int
 	err := db.Pool.QueryRow(context.Background(),
 		`SELECT substitution_types, template_url, required_privilege, title, translation_id
-			FROM page_type, pages, translations
-			WHERE pages.page_type_id = page_type.page_type_id
+			FROM page_types, pages, translations
+			WHERE pages.page_type_id = page_types.page_type_id
 			AND translations.page_id = pages.page_id
 			AND lang_code = $1
 			AND url = $2`,

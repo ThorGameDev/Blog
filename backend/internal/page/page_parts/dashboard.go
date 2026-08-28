@@ -19,7 +19,7 @@ func GeneratePageTypeDropdown() string {
 	dropdown.WriteString(`<select name="pageType" id="pageType">`)
 
 	rows, err := db.Pool.Query(context.Background(),
-		`SELECT page_type_id, type_name from page_type`)
+		`SELECT page_type_id, type_name from page_types`)
 	if err != nil {
 		dropdown.WriteString(`</select>`)
 		return dropdown.String()
@@ -46,8 +46,8 @@ func GenerateCreatorDashboard(langCode string) (string, error) {
 
 	pageRows, err := db.Pool.Query(context.Background(),
 		`SELECT page_id, type_name
-			FROM pages, page_type
-			WHERE pages.page_type_id = page_type.page_type_id
+			FROM pages, page_types
+			WHERE pages.page_type_id = page_types.page_type_id
 			ORDER BY pages.page_id DESC`)
 	if err != nil {
 		slog.Error("Error while querying the database", "err", err)

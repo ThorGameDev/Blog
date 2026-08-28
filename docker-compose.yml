@@ -26,12 +26,24 @@ services:
       - database/postgres.env
     volumes:
       - uploads:/uploads
+      - workdir:/workdir
     depends_on:
       db:
         condition: service_healthy
     networks:
       - app-network
       - postgres-network
+      - worker-network
+
+  image-sanitizer:
+    container_name: blog-image-sanitizer
+    build:
+      context: ./workers/image-sanitizer/
+      dockerfile: Dockerfile
+    networks:
+      - worker-network
+    volumes:
+      - workdir:/home/worker/app/workdir
 
   db:
     container_name: blog-db
@@ -53,7 +65,10 @@ networks:
     driver: bridge
   postgres-network:
     driver: bridge
+  worker-network:
+    driver: bridge
 
 volumes:
   uploads:
+  workdir:
   pgdata:

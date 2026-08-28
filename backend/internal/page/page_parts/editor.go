@@ -54,9 +54,9 @@ func GenerateEditor(langCode string, pageId string) string {
 	var typeName string
 	err = db.Pool.QueryRow(context.Background(),
 		`SELECT substitution_types, type_name
-			FROM pages, page_type
+			FROM pages, page_types
 			WHERE page_id = $1
-			AND pages.page_type_id = page_type.page_type_id`,
+			AND pages.page_type_id = page_types.page_type_id`,
 		pageId).Scan(&substitutionTypes, &typeName)
 	if err != nil {
 		slog.Error("Error while getting substitution types", "err", err)
