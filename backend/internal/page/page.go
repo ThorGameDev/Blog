@@ -235,6 +235,12 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			returnURL := utils_url.SanitizeURL(req.URL.Query().Get("from"))
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
+		case "Comments":
+			commentsString, err := page_parts.GenerateComments(translationId, langCode)
+			if err != nil {
+				return
+			}
+			finalSubstitutions[key] = commentsString
 		case "Text", "TemplateText", "Content":
 			if substitutionValue, ok := substitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue

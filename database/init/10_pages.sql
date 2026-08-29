@@ -11,6 +11,7 @@ INSERT INTO page_types (
         "LangTags": "LangTags",
         "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails",
+        "Comments": "Comments",
         "Content": "Content"
     }
     '::JSONB,

@@ -79,3 +79,15 @@ CREATE TABLE tests (
 );
 
 CREATE INDEX idx_test_translationid ON tests (translation_id);
+
+CREATE TABLE comments (
+    comment_id SERIAL,
+    translation_id INT NOT NULL,
+    uid INT NOT NULL,
+    container_id INT,
+    content TEXT,
+    FOREIGN KEY (translation_id) REFERENCES translations(translation_id),
+    FOREIGN KEY (uid) REFERENCES users(uid),
+    FOREIGN KEY (container_id) REFERENCES comments(comment_id),
+    PRIMARY KEY (comment_id)
+)

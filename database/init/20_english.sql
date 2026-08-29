@@ -98,3 +98,25 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 ('02', 6, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
 ('03', 6, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
 ('04', 6, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
+
+-- Meaningless temporary test data
+
+-- Create users (That can not be logged into, due to an impossible hash)
+INSERT INTO users (username, password_hash, pfp_id, privilege) VALUES
+('TestUser', 'Password Hash', 1, 1),
+('FakePerson', 'Password Hash', 1, 1);
+
+INSERT INTO comments (translation_id, uid, container_id, content) VALUES
+(6, 1, NULL, 'First!'),
+(6, 2, NULL, 'first'),
+(6, 1, 2, 'Haha, Sucker!'),
+(6, 2, 3, 'Shutup.'),
+(6, 1, NULL, 'This is a verry good comment!'),
+(6, 2, 5, 'It''s not'),
+(6, 2, 5, 'It''s really not.'),
+(6, 2, 5, 'Not at all.'),
+(6, 1, 8, 'No need to say it so many times'),
+(6, 2, 9, 'But I do though'),
+(6, 1, 10, 'Why?'),
+(6, 2, 11, 'Because its how it should be'),
+(6, 1, 12, 'You should be quiet.');
