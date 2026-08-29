@@ -57,14 +57,24 @@ func GetRequestURL(req *http.Request) string {
 }
 
 func TranslateQueryParams(queryParams url.Values, newLangCode string) string {
+	// If there aren't actually any query prams, return nothing
 	if len(queryParams) == 0 {
 		return ""
 	}
+
+	// If there is no "from" key, return the params as is
 	fromQuery := queryParams.Get("from")
+	if fromQuery == "" {
+		return "?" + queryParams.Encode()
+	}
+
+	// Try to translate the from key
 	translatedFrom := TranslateURL(fromQuery, nil, newLangCode)
 	if translatedFrom == "" {
 		return "?" + queryParams.Encode()
 	}
+
+	// replace the from key with the translated value
 	queryParams.Set("from", translatedFrom)
 	encoded := queryParams.Encode()
 	return "?" + encoded
@@ -91,12 +101,12 @@ func TranslateURL(decodedURL string, queryParams url.Values, newLangCode string)
 	err := db.Pool.QueryRow(context.Background(),
 		`SELECT url FROM translations
 			WHERE page_id = (
-				SELECT page_id FROM translations 
+				SELECT page_id FROM translations
 					WHERE url = $1
 			) AND lang_code = $2`,
 		decodedURL, newLangCode).Scan(&newURL)
 	if err != nil {
-		slog.Error("SQL Error", "err", err)
+		slog.Error("SQL Error while getting new URL for translation", "err", err)
 		return ""
 	}
 	return prefix + newURL + suffix

@@ -14,6 +14,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -235,8 +236,18 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			returnURL := utils_url.SanitizeURL(req.URL.Query().Get("from"))
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
-		case "Comments":
-			commentsString, err := page_parts.GenerateComments(translationId, langCode)
+		case "CommentSection":
+			commentsString, err := page_parts.GenerateCommentSection(translationId, langCode)
+			if err != nil {
+				return
+			}
+			finalSubstitutions[key] = commentsString
+		case "Comment":
+			commentId, err := strconv.Atoi(queryParams.Get("c"))
+			if err != nil {
+				return
+			}
+			commentsString, err := page_parts.GenerateCommentInfo(langCode, commentId)
 			if err != nil {
 				return
 			}

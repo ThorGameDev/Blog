@@ -15,19 +15,20 @@ INSERT INTO translations (page_id, lang_code, title, url) VALUES
 (1, 'en', 'Login', '/login.html'),
 (2, 'en', 'Signup', '/signup.html'),
 (3, 'en', 'User', '/user.html'),
+(4, 'en', 'Comment', '/comment.html'),
 (
-    4,
+    5,
     'en',
     'Creator Dashboard',
     '/creator/dashboard.html'
 ),
 (
-    5,
+    6,
     'en',
     'Editor',
     '/creator/editor.html'
 ),
-(6, 'en', 'Page 1', '/blog/page1.html');
+(7, 'en', 'Page 1', '/blog/page1.html');
 
 INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 (
@@ -70,9 +71,10 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     }
     '::JSONB
 ),
+('01', 4, '{ }'::JSONB),
 (
     '01',
-    4,
+    5,
     '
     {
         "ManagePage": "Manage Page",
@@ -83,7 +85,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 ),
 (
     '01',
-    5,
+    6,
     '
     {
         "SaveChangesPrompt": "Save Changes",
@@ -94,10 +96,10 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     }
     '::JSONB
 ),
-('01', 6, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
-('02', 6, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
-('03', 6, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
-('04', 6, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
+('01', 7, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
+('02', 7, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
+('03', 7, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
+('04', 7, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
 
 -- Meaningless temporary test data
 
@@ -107,16 +109,16 @@ INSERT INTO users (username, password_hash, pfp_id, privilege) VALUES
 ('FakePerson', 'Password Hash', 1, 1);
 
 INSERT INTO comments (translation_id, uid, container_id, content) VALUES
-(6, 1, NULL, 'First!'),
-(6, 2, NULL, 'first'),
-(6, 1, 2, 'Haha, Sucker!'),
-(6, 2, 3, 'Shutup.'),
-(6, 1, NULL, 'This is a verry good comment!'),
-(6, 2, 5, 'It''s not'),
-(6, 2, 5, 'It''s really not.'),
-(6, 2, 5, 'Not at all.'),
-(6, 1, 8, 'No need to say it so many times'),
-(6, 2, 9, 'But I do though'),
-(6, 1, 10, 'Why?'),
-(6, 2, 11, 'Because its how it should be'),
-(6, 1, 12, 'You should be quiet.');
+(7, 1, NULL, 'First!'),
+(7, 2, NULL, 'first'),
+(7, 1, 2, 'Haha, Sucker!'),
+(7, 2, 3, 'Shutup.'),
+(7, 1, NULL, 'This is a verry good comment!'),
+(7, 2, 5, 'It''s not'),
+(7, 2, 5, 'It''s really not.'),
+(7, 2, 5, 'Not at all.'),
+(7, 1, 8, 'No need to say it so many times'),
+(7, 2, 9, 'But I do though'),
+(7, 1, 10, 'Why?'),
+(7, 2, 11, 'Because its how it should be'),
+(7, 1, 12, 'You should be quiet.');

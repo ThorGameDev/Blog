@@ -23,19 +23,20 @@ INSERT INTO translations (page_id, lang_code, title, url) VALUES
 (1, 'ja', 'ログイン', '/ログイン.html'),
 (2, 'ja', '登録', '/とうろく.html'),
 (3, 'ja', 'ユーザー', '/ユーザー.html'),
+(4, 'ja', 'コメント', '/コメント.html'),
 (
-    4,
+    5,
     'ja',
     'クリエイターダッシュボード',
     '/クリエイター/ダッシュボード.html'
 ),
 (
-    5,
+    6,
     'ja',
     'エディタ',
     '/クリエイター/エディタ.html'
 ),
-(6, 'ja', 'ページ１', '/ブログ/ページ１.html');
+(7, 'ja', 'ページ１', '/ブログ/ページ１.html');
 
 INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 (
@@ -78,9 +79,10 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     }
     '::JSONB
 ),
+('01', 104, '{ }'::JSONB),
 (
     '01',
-    104,
+    105,
     '
     {
         "ManagePage": "ページ管理",
@@ -91,7 +93,7 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 ),
 (
     '01',
-    105,
+    106,
     '
     {
         "SaveChangesPrompt": "保存",
@@ -102,5 +104,5 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     }
     '::JSONB
 ),
-('01', 106, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
-('02', 106, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);
+('01', 107, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
+('02', 107, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);
