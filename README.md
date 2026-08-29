@@ -1,18 +1,36 @@
 # Blog
 This is a Work In Progress Blog engine to host my own personal blog.
 
+## Tech Stack
+#### Infrastructure
+- Docker Compose: to simplify cross-platform development & deployment
+- Nginx: routes requests to appropriate API endpoints
+#### Frontend
+- HTML: Mostly generated from backend
+    - html-minifier-next: Minifies HTML files for more efficient net usage
+- SCSS: Page styling
+- TS: Improvements to Frontend behavior
+    - esbuild: TS transpiler and bundler
+#### Backend
+- Go: Generates HTML pages from templates, and used as the main API
+    - jackc/pgx: go bindings to postgreSQL
+    - valyala/fasttemplate: Makes HTML template files more efficient to use
+    - crypto: Used for secure password generation and validation
+    - google/uuid: Generates random file names without the risk of name collision
+- Python: Isolated worker for safe image re-encoding
+    - FastAPI: Used to simplify communication between backend and workers (Should remove eventually)
+    - Pillow: Used for profile picture re-encoding
+#### Database
+- PostgreSQL: Manages user accounts, translations, comments, etc
+
 ## Current features
-- Basic Docker setup
-- HTML is minified
-- Compiled TS and SCSS files
-- Go backend
-- Docker Build caching
 - Simple user accounts
+- Safely sanitized user profile pictures
 - SQL page management
 - Simple Bilingual page translation system
+- Side by side page editor
 
 ## Planned Features (Roughly in planned order)
-- User accounts
 - Comment threads
 - AB testing system
 - A half decent looking fronted
@@ -22,6 +40,7 @@ This is a Work In Progress Blog engine to host my own personal blog.
 - Early access subscriptions
 - SEO optimizations
 - Lynx support (No JS or CSS needed)
+- Bot prevention with Anubis
 - Data analysis panel
 - Dead Man's switch to ensure travel safety
 - A really good looking fronted
