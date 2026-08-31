@@ -3,6 +3,7 @@ package api_user
 import (
 	"blogbackend/internal/utils/db"
 	"blogbackend/internal/utils/utils_err"
+	"blogbackend/internal/utils/utils_sec"
 	"context"
 	"errors"
 	"fmt"
@@ -15,7 +16,6 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5"
 )
 
 func copyPFPToWorkdir(pfpFileData multipart.File, filename string) error {
@@ -124,15 +124,12 @@ func changePFP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	session_id, err := req.Cookie("session_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			http.Error(w, "No Session", http.StatusBadRequest)
-			return
-		}
-		slog.Error("Failed to get session ID cookie!", "err", err)
+	uid := utils_sec.GetUID(req)
+	if uid == -1 {
+		http.Error(w, "Not logged in", http.StatusBadRequest)
 		return
 	}
+
 	// Get the profile picture from the form
 	pfpFileData, header, err := req.FormFile("newPFP")
 	if err != nil {
@@ -165,24 +162,6 @@ func changePFP(w http.ResponseWriter, req *http.Request) {
 	fmt.Fprintf(w, "File uploaded successfully: ")
 	fmt.Fprintf(w, uploadFile)
 
-	// Get information on current profile picture
-	var pfpId int
-	var userUploaded bool
-	var uid int
-	err = db.Pool.QueryRow(context.Background(),
-		`SELECT profile_pictures.pfp_id, user_uploaded, users.uid
-			FROM sessions, users, profile_pictures
-			WHERE sessions.session_token = $1
-			AND users.uid = sessions.uid
-			AND profile_pictures.pfp_id = users.pfp_id`,
-		session_id.Value).Scan(&pfpId, &userUploaded, &uid)
-	if err != nil {
-		if err != pgx.ErrNoRows {
-			slog.Error("Problem while getting profile picture information from sql", "err", err)
-		}
-		return
-	}
-
 	// Link new profile picture in place of old one
 	status, err := db.Pool.Exec(context.Background(),
 		`WITH new_pfp AS (
@@ -204,8 +183,6 @@ func changePFP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	// If the previous profile picture that is being replaced was user uploaded, delete it from disk
-	if userUploaded {
-		deleteUnusedPFPs()
-	}
+	// Delete the old profile picture from disk
+	deleteUnusedPFPs()
 }

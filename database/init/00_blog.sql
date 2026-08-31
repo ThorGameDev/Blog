@@ -15,8 +15,6 @@ CREATE TABLE users (
     PRIMARY KEY (uid)
 );
 
--- This is the sort of thing to move to redis eventually
--- There is currently no expire logic
 CREATE TABLE sessions (
     session_token VARCHAR(44) NOT NULL,
     uid INT NOT NULL,

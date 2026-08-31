@@ -52,11 +52,6 @@ func getLangLinks(currentLangCode string, alternatePages []utils_url.LangURL) (s
 	return langLinks.String(), nil
 }
 
-func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
-	newURL := utils_url.TranslateURL("/##"+fromPage, queryParams, langCode)
-	http.Redirect(w, req, newURL, http.StatusPermanentRedirect)
-}
-
 func createLoginLinks(fromPageUrl string, langCode string) string {
 	queryParamData := url.Values{}
 	queryParamData.Set("from", "/"+langCode+fromPageUrl)
@@ -91,24 +86,18 @@ func createLoginLinks(fromPageUrl string, langCode string) string {
 	)
 }
 
-func getAccountDetails(req *http.Request, pageURL string, langCode string) (string, error) {
-	session_id, err := req.Cookie("session_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			return createLoginLinks(pageURL, langCode), nil
-		}
-		slog.Error("Failed to get session ID cookie!", "err", err)
-		return "", err
+func getAccountDetails(uid int, pageURL string, langCode string) (string, error) {
+	if uid == -1 {
+		return createLoginLinks(pageURL, langCode), nil
 	}
 	var username string
 	var pfp_url string
-	err = db.Pool.QueryRow(context.Background(),
+	err := db.Pool.QueryRow(context.Background(),
 		`SELECT username, profile_pictures.url
-			FROM users, sessions, profile_pictures
-			WHERE users.uid = sessions.uid
-			AND sessions.session_token = $1
+			FROM users, profile_pictures
+			WHERE uid = $1
 			AND profile_pictures.pfp_id = users.pfp_id`,
-		session_id.Value).Scan(&username, &pfp_url)
+		uid).Scan(&username, &pfp_url)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return createLoginLinks(pageURL, langCode), nil
@@ -118,6 +107,11 @@ func getAccountDetails(req *http.Request, pageURL string, langCode string) (stri
 	}
 	accountPageURL := utils_url.TranslateURL("/en/user.html", nil, langCode)
 	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_url), nil
+}
+
+func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
+	newURL := utils_url.TranslateURL("/##"+fromPage, queryParams, langCode)
+	http.Redirect(w, req, newURL, http.StatusPermanentRedirect)
 }
 
 func pageGen(w http.ResponseWriter, req *http.Request) {
@@ -152,17 +146,10 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	uid := utils_sec.GetUID(req)
 	// Check if user has the permissions required to view the page
 	if requiredPrivilege > 0 {
-		sessionId, err := req.Cookie("session_id")
-		if err != nil {
-			if err != http.ErrNoCookie {
-				slog.Error("Unknown cookie error", "err", err)
-			}
-			http.Error(w, "No permissions to access page", http.StatusForbidden)
-			return
-		}
-		err = utils_sec.RequireLevel(sessionId.Value, requiredPrivilege)
+		err = utils_sec.RequireLevel(uid, requiredPrivilege)
 		if err != nil {
 			http.Error(w, utils_err.CodeToMessage(err.Error(), langCode), http.StatusForbidden)
 			return
@@ -225,7 +212,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				finalSubstitutions[key] = ""
 			}
 		case "AccountDetails":
-			details, err := getAccountDetails(req, pageURL, langCode)
+			details, err := getAccountDetails(uid, pageURL, langCode)
 			if err != nil {
 				slog.Error("Error getting Account Details", "err", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -272,7 +259,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		case "Creator.Editor":
 			finalSubstitutions[key] = page_parts.GenerateEditor(langCode, req.URL.Query().Get("page"))
 		case "User.AccountDetails":
-			details, err := page_parts.GenerateUserPage(req, pageURL, langCode)
+			details, err := page_parts.GenerateUserPage(uid, pageURL, langCode)
 			if err != nil {
 				slog.Error("Error getting Account Details", "err", err)
 				http.Error(w, "Internal Server Error", http.StatusInternalServerError)

@@ -2,11 +2,11 @@ package api_user
 
 import (
 	"blogbackend/internal/utils/db"
+	"blogbackend/internal/utils/utils_sec"
 	"context"
 	"log/slog"
 	"net/http"
 
-	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,30 +30,20 @@ func changePassword(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	session_id, err := req.Cookie("session_id")
-	if err != nil {
-		if err == http.ErrNoCookie {
-			http.Error(w, "No Session", http.StatusBadRequest)
-			return
-		}
-		slog.Error("Failed to get session ID cookie!", "err", err)
+	uid := utils_sec.GetUID(req)
+	if uid == -1 {
+		http.Error(w, "Not logged in", http.StatusBadRequest)
 		return
 	}
 
 	var pash string
-	var uid int
 	err = db.Pool.QueryRow(context.Background(),
-		`SELECT users.password_hash, users.uid FROM users, sessions
-			WHERE session_token = $1
-			AND sessions.uid = users.uid`,
-		session_id.Value).Scan(&pash, &uid)
+		`SELECT users.password_hash FROM users
+			WHERE uid = $1`,
+		uid).Scan(&pash)
 	if err != nil {
-		if err == pgx.ErrNoRows {
-			http.Error(w, "Session Expired", http.StatusBadRequest)
-			return
-		}
 		slog.Error("Failed to decode session ID cookie!", "err", err)
-		http.Error(w, "Bad Session!", http.StatusBadRequest)
+		http.Error(w, "Internal Server Error", http.StatusBadRequest)
 		return
 	}
 

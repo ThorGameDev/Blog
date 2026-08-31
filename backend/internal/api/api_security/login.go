@@ -3,16 +3,14 @@ package api_security
 import (
 	"blogbackend/internal/utils/db"
 	"blogbackend/internal/utils/utils_err"
+	"blogbackend/internal/utils/utils_sec"
 	"blogbackend/internal/utils/utils_url"
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/url"
-	"time"
 
 	"github.com/jackc/pgx/v5"
 	"golang.org/x/crypto/bcrypt"
@@ -35,36 +33,8 @@ func loginTo(w http.ResponseWriter, username string, password string) error {
 		return errors.New(utils_err.IncorrectPassword)
 	}
 
-	// Login good, proceed to setting session
-	randBytes := make([]byte, 32)
-	if _, err := rand.Read(randBytes); err != nil {
-		return errors.New("")
-	}
-	cookie := base64.URLEncoding.EncodeToString(randBytes)
-
-	expireDate := time.Now().Add(time.Hour * 24) // Expires cookie after a day of neglect
-
-	status, err := db.Pool.Exec(context.Background(),
-		"INSERT INTO sessions (session_token, uid, expire_date) VALUES ($1, $2, $3)",
-		cookie, uid, expireDate)
-	if err != nil {
-		slog.Error("Failed to create account! ", "err", err)
-		return errors.New(utils_err.InternalError)
-	}
-	if status.RowsAffected() != 1 {
-		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
-		return errors.New(utils_err.InternalError)
-	}
-
-	sessionCookie := &http.Cookie{
-		Name:     "session_id",
-		Value:    cookie,
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
-	}
-	http.SetCookie(w, sessionCookie)
+	// Login complete, add the login cookie
+	utils_sec.RegisterSession(w, uid)
 
 	return nil
 }
