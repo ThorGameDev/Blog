@@ -1,3 +1,13 @@
+CREATE TABLE site_settings (
+    key TEXT NOT NULL,
+    val TEXT NOT NULL,
+    PRIMARY KEY (key)
+);
+INSERT INTO site_settings (key, val) VALUES
+('Version', '00.00.00'), -- Will be critical for adding version migration scripts eventually.
+('Name', 'Blog'),
+('URL', 'http://localhost:8080');
+
 CREATE TABLE profile_pictures (
     pfp_id SERIAL,
     user_uploaded BOOLEAN NOT NULL,

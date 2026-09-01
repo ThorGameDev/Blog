@@ -14,6 +14,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
+// TODO: Change Session storage method
 // there really is no real reason for sessions to be stored in SQL.
 // A queue would be a good implementation, because that would make deleting expired sessions easy
 // It just needs to be thread safe

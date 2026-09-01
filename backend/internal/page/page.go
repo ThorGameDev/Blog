@@ -21,7 +21,15 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
-func getLangTags(domainURL string, currentLangCode string, alternatePages []utils_url.LangURL) (string, error) {
+func GenerateLangTags(currentLangCode string, alternatePages []utils_url.LangURL) string {
+	var domainURL string
+	err := db.Pool.QueryRow(context.Background(),
+		`SELECT val FROM site_settings WHERE key = 'URL'`).Scan(&domainURL)
+	if err != nil {
+		slog.Error("Could not get url from Site_settings!", "err", err)
+		return ""
+	}
+
 	var langTagCluster strings.Builder
 	for _, val := range alternatePages {
 		toURL := domainURL + "/" + val.LangCode + val.PageURL
@@ -32,16 +40,20 @@ func getLangTags(domainURL string, currentLangCode string, alternatePages []util
 	}
 
 	var langTags string
-	err := db.Pool.QueryRow(context.Background(),
+	err = db.Pool.QueryRow(context.Background(),
 		`SELECT page_tags FROM languages WHERE lang_code = $1`,
 		currentLangCode).Scan(&langTags)
+	if err != nil {
+		slog.Error("Failed to get language specific tags from SQL", "err", err)
+		return ""
+	}
 
 	langTagCluster.WriteString(langTags)
 
-	return langTagCluster.String(), err
+	return langTagCluster.String()
 }
 
-func getLangLinks(currentLangCode string, alternatePages []utils_url.LangURL) (string, error) {
+func GenerateLangLinks(currentLangCode string, alternatePages []utils_url.LangURL) string {
 	var langLinks strings.Builder
 	for _, val := range alternatePages {
 		if currentLangCode != val.LangCode {
@@ -49,7 +61,7 @@ func getLangLinks(currentLangCode string, alternatePages []utils_url.LangURL) (s
 			fmt.Fprintf(&langLinks, `<a rel="alternate" hreflang="%s" href="%s">%s</a>`, val.LangCode, toURL, val.LangName)
 		}
 	}
-	return langLinks.String(), nil
+	return langLinks.String()
 }
 
 func createLoginLinks(fromPageUrl string, langCode string) string {
@@ -86,9 +98,9 @@ func createLoginLinks(fromPageUrl string, langCode string) string {
 	)
 }
 
-func getAccountDetails(uid int, pageURL string, langCode string) (string, error) {
+func GenerateAccountDetails(uid int, pageURL string, langCode string) string {
 	if uid == -1 {
-		return createLoginLinks(pageURL, langCode), nil
+		return createLoginLinks(pageURL, langCode)
 	}
 	var username string
 	var pfp_url string
@@ -100,13 +112,13 @@ func getAccountDetails(uid int, pageURL string, langCode string) (string, error)
 		uid).Scan(&username, &pfp_url)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			return createLoginLinks(pageURL, langCode), nil
+			return createLoginLinks(pageURL, langCode)
 		}
 		slog.Error("Error while fetching user information", "err", err)
-		return "", err
+		return ""
 	}
 	accountPageURL := utils_url.TranslateURL("/en/user.html", nil, langCode)
-	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_url), nil
+	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_url)
 }
 
 func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
@@ -115,8 +127,6 @@ func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, q
 }
 
 func pageGen(w http.ResponseWriter, req *http.Request) {
-	domainURL := utils_url.GetRequestURL(req)
-
 	fullPageURL := req.URL.Path
 	langCode := fullPageURL[1:3]
 	pageURL := fullPageURL[3:]
@@ -188,21 +198,9 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		case "LangCode":
 			finalSubstitutions[key] = langCode
 		case "LangTags":
-			langTags, err := getLangTags(domainURL, langCode, altURLs)
-			if err != nil {
-				slog.Error("Error getting language tags", "err", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			finalSubstitutions[key] = langTags
+			finalSubstitutions[key] = GenerateLangTags(langCode, altURLs)
 		case "LangRedirects":
-			langLinks, err := getLangLinks(langCode, altURLs)
-			if err != nil {
-				slog.Error("Error getting language links", "err", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			finalSubstitutions[key] = langLinks
+			finalSubstitutions[key] = GenerateLangLinks(langCode, altURLs)
 		case "Errors":
 			errorURL := req.URL.Query().Get("err")
 			if errorURL != "" {
@@ -212,33 +210,19 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				finalSubstitutions[key] = ""
 			}
 		case "AccountDetails":
-			details, err := getAccountDetails(uid, pageURL, langCode)
-			if err != nil {
-				slog.Error("Error getting Account Details", "err", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			finalSubstitutions[key] = details
+			finalSubstitutions[key] = GenerateAccountDetails(uid, pageURL, langCode)
 		case "ReturnURL":
 			returnURL := utils_url.SanitizeURL(req.URL.Query().Get("from"))
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
 		case "CommentSection":
-			commentsString, err := page_parts.GenerateCommentSection(translationId, langCode)
-			if err != nil {
-				return
-			}
-			finalSubstitutions[key] = commentsString
+			finalSubstitutions[key] = page_parts.GenerateCommentSection(translationId, langCode)
 		case "Comment":
 			commentId, err := strconv.Atoi(queryParams.Get("c"))
 			if err != nil {
 				return
 			}
-			commentsString, err := page_parts.GenerateCommentInfo(langCode, commentId)
-			if err != nil {
-				return
-			}
-			finalSubstitutions[key] = commentsString
+			finalSubstitutions[key] = page_parts.GenerateCommentInfo(langCode, commentId)
 		case "Text", "TemplateText", "Content":
 			if substitutionValue, ok := substitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
@@ -247,25 +231,13 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				finalSubstitutions[key] = ""
 			}
 		case "Creator.Dashboard":
-			dashboardData, err := page_parts.GenerateCreatorDashboard(langCode)
-			if err != nil {
-				slog.Error("Error while creating creator dashboard", "err", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			finalSubstitutions[key] = dashboardData
+			finalSubstitutions[key] = page_parts.GenerateCreatorDashboard(langCode)
 		case "Creator.PageTypeDropdown":
 			finalSubstitutions[key] = page_parts.GeneratePageTypeDropdown()
 		case "Creator.Editor":
 			finalSubstitutions[key] = page_parts.GenerateEditor(langCode, req.URL.Query().Get("page"))
 		case "User.AccountDetails":
-			details, err := page_parts.GenerateUserPage(uid, pageURL, langCode)
-			if err != nil {
-				slog.Error("Error getting Account Details", "err", err)
-				http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-				return
-			}
-			finalSubstitutions[key] = details
+			finalSubstitutions[key] = page_parts.GenerateUserPage(uid, pageURL, langCode)
 		}
 	}
 

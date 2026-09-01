@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-func GenerateUserPage(uid int, pageURL string, langCode string) (string, error) {
+func GenerateUserPage(uid int, pageURL string, langCode string) string {
 	if uid == -1 {
-		return "<h1>Not logged in!</h1>", nil
+		return "<h1>Not logged in!</h1>"
 	}
 	var username string
 	var pfp_url string
@@ -22,10 +22,10 @@ func GenerateUserPage(uid int, pageURL string, langCode string) (string, error) 
 		uid).Scan(&username, &pfp_url)
 	if err != nil {
 		slog.Error("Error while fetching user information", "err", err)
-		return "", err
+		return ""
 	}
 	var pageData strings.Builder
 	fmt.Fprintf(&pageData, `<h1>%s</h1>`, username)
 	fmt.Fprintf(&pageData, `<img src="%s">`, pfp_url)
-	return pageData.String(), nil
+	return pageData.String()
 }

@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+
+	"github.com/jackc/pgx/v5"
 )
 
-func getComments(translationId int, langCode string, containerId *int) (string, error) {
+func getComments(translationId int, langCode string, containerId *int) string {
 	// Get all root comments for the current page, with oldest first
 	rows, err := db.Pool.Query(context.Background(),
 		`SELECT comment_id,
@@ -28,8 +30,10 @@ func getComments(translationId int, langCode string, containerId *int) (string, 
 			ORDER BY comment_id ASC`,
 		translationId, containerId)
 	if err != nil {
-		slog.Error("Failed to get comment data!", "err", err)
-		return "", err
+		if err != pgx.ErrNoRows {
+			slog.Error("Failed to get comment data!", "err", err)
+		}
+		return ""
 	}
 	defer rows.Close()
 
@@ -43,7 +47,7 @@ func getComments(translationId int, langCode string, containerId *int) (string, 
 		var numChildren int
 		if err := rows.Scan(&commentId, &content, &username, &pfpURL, &numChildren); err != nil {
 			slog.Error("Failed to read comment", "err", err)
-			return "", err
+			return ""
 		}
 
 		fmt.Fprintf(&commentsSection, `<div class=comment><h3>%s</h3><img src="%s"><p>%s</p>`, username, pfpURL, content)
@@ -52,14 +56,14 @@ func getComments(translationId int, langCode string, containerId *int) (string, 
 		}
 		commentsSection.WriteString(`</div>`)
 	}
-	return commentsSection.String(), nil
+	return commentsSection.String()
 }
 
-func GenerateCommentSection(translationId int, langCode string) (string, error) {
+func GenerateCommentSection(translationId int, langCode string) string {
 	return getComments(translationId, langCode, nil)
 }
 
-func GenerateCommentInfo(langCode string, commentId int) (string, error) {
+func GenerateCommentInfo(langCode string, commentId int) string {
 	var content string
 	var username string
 	var pfpURL string
@@ -72,19 +76,19 @@ func GenerateCommentInfo(langCode string, commentId int) (string, error) {
 			AND users.pfp_id = profile_pictures.pfp_id`,
 		commentId).Scan(&content, &username, &pfpURL, &translationId)
 	if err != nil {
-		return "", err
+		if err != pgx.ErrNoRows {
+			slog.Error("SQL error while getting comment info", "err", err)
+		}
+		return ""
 	}
 
 	var commentInfo strings.Builder
 	fmt.Fprintf(&commentInfo, `<div class=comment><h3>%s</h3><img src="%s"><p>%s</p>`, username, pfpURL, content)
 	commentInfo.WriteString("<div class=replies>")
 
-	replies, err := getComments(translationId, langCode, &commentId)
-	if err != nil {
-		return "", err
-	}
+	replies := getComments(translationId, langCode, &commentId)
 	commentInfo.WriteString(replies)
 	commentInfo.WriteString("</div></div>")
 
-	return commentInfo.String(), nil
+	return commentInfo.String()
 }

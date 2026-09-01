@@ -41,7 +41,7 @@ func GeneratePageTypeDropdown() string {
 	return dropdown.String()
 }
 
-func GenerateCreatorDashboard(langCode string) (string, error) {
+func GenerateCreatorDashboard(langCode string) string {
 	editorLink := utils_url.TranslateURL("/en/creator/editor.html", nil, langCode)
 
 	pageRows, err := db.Pool.Query(context.Background(),
@@ -51,7 +51,7 @@ func GenerateCreatorDashboard(langCode string) (string, error) {
 			ORDER BY pages.page_id DESC`)
 	if err != nil {
 		slog.Error("Error while querying the database", "err", err)
-		return "", err
+		return ""
 	}
 	defer pageRows.Close()
 
@@ -64,8 +64,8 @@ func GenerateCreatorDashboard(langCode string) (string, error) {
 		var pageId int
 		var typeName string
 		if err := pageRows.Scan(&pageId, &typeName); err != nil {
-			slog.Error("Critical Error!A", "err", err)
-			return "", err
+			slog.Error("Critical Error! Failed to read pageID and typeName from pageRows", "err", err)
+			return ""
 		}
 
 		// Start the block
@@ -81,7 +81,7 @@ func GenerateCreatorDashboard(langCode string) (string, error) {
 			pageId, langCode)
 		if err != nil {
 			slog.Error("Error while querying the database", "err", err)
-			return "", err
+			return ""
 		}
 		defer translationRows.Close()
 
@@ -92,7 +92,7 @@ func GenerateCreatorDashboard(langCode string) (string, error) {
 			var rowLangCode string
 			if err := translationRows.Scan(&rowURL, &rowPageTitle, &rowLangCode); err != nil {
 				slog.Error("Critical Error!", "err", err)
-				return "", err
+				return ""
 			}
 			fmt.Fprintf(&dashboardData, `<h3>%s</h3>`, rowPageTitle)
 			fmt.Fprintf(&dashboardData, `<a hreflang="%s" href="/%s%s">%s</a>`, rowLangCode, rowLangCode, rowURL, rowURL)
@@ -112,5 +112,5 @@ func GenerateCreatorDashboard(langCode string) (string, error) {
 	// Close Main Block
 	dashboardData.WriteString("</div>")
 
-	return dashboardData.String(), nil
+	return dashboardData.String()
 }

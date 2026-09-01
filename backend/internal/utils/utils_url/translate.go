@@ -3,9 +3,7 @@ package utils_url
 import (
 	"blogbackend/internal/utils/db"
 	"context"
-	"fmt"
 	"log/slog"
-	"net/http"
 	"net/url"
 
 	"github.com/jackc/pgx/v5"
@@ -45,15 +43,6 @@ func GetAlternateURLs(fromPage string, fromLangCode string, queryParams url.Valu
 			return LangURL{LangCode: rowLangCode, PageURL: rowURL, QueryParams: newQueryParams, LangName: rowLangName, IsPrimary: rowIsPrimary}, err
 		},
 	)
-}
-
-// Eventually, it should hardcode the site's specific URLs. For now, no urls exist
-func GetRequestURL(req *http.Request) string {
-	urlscheme := "http"
-	if req.TLS != nil || req.Header.Get("X-Forwarded-Proto") == "https" {
-		urlscheme = "https"
-	}
-	return fmt.Sprintf("%s://%s", urlscheme, req.Host)
 }
 
 func TranslateQueryParams(queryParams url.Values, newLangCode string) string {

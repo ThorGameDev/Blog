@@ -50,7 +50,7 @@ This is a Work In Progress Blog engine to host my own personal blog.
 ### Account Privilege levels
 It would probably be better to switch to something more granular eventually
 0. ReadOnly    : Not signed in
-1. User        : Standard User Account. 
+1. User        : Standard User Account.
 2. EarlyAccess : First payment tier. Early Access
 3. Bonus       : Second payment tier. Add additional perks. Might go unused
 4. VIP         : Third payment tier. Add additional perks
