@@ -154,7 +154,7 @@ func GenerateEditor(langCode string, pageId string) string {
 						// Will be different eventually
 						fmt.Fprintf(&comparisonData, `<input type="text" name="%s" id="%s" value="%s">`, escKey, inputFieldId, testVal)
 					case "Content":
-						fmt.Fprintf(&comparisonData, `<textarea name="%s" id="%s">%s</textarea>`, escKey, inputFieldId, esc(testSubstitutions[key]))
+						fmt.Fprintf(&comparisonData, `<textarea name="%s" id="%s">%s</textarea>`, escKey, inputFieldId, testVal)
 					}
 					comparisonData.WriteString(`</br>`)
 				}

@@ -167,9 +167,9 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
 		case "CommentSection":
-			finalSubstitutions[key] = page_parts.GenerateCommentSection(translationId, langCode)
+			finalSubstitutions[key] = page_parts.GenerateCommentSection(uid, translationId, langCode)
 		case "Comment":
-			finalSubstitutions[key] = page_parts.GenerateCommentInfo(langCode, queryParams)
+			finalSubstitutions[key] = page_parts.GenerateCommentInfo(uid, langCode, queryParams)
 		case "Text", "TemplateText", "Content":
 			if substitutionValue, ok := substitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
@@ -193,7 +193,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	// Resolve template texts
 	for key, val := range substitutionTypes {
 		switch val {
-		case "TemplateText", "Creator.Dashboard", "Creator.Editor", "CommentSection", "Comments":
+		case "TemplateText", "Creator.Dashboard", "Creator.Editor", "CommentSection", "Comment":
 			subTemplate := fasttemplate.New(finalSubstitutions[key].(string), "{{ ", " }}")
 			finalSubstitutions[key] = subTemplate.ExecuteString(finalSubstitutions)
 		}

@@ -22,6 +22,10 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
     'ja',
     '
     {
+        "Global.CommentSectionHeader": "コメント",
+        "Global.SubmitComment": "コメントする",
+        "Global.LoginToComment": "ログインしてください。",
+        "Global.SubmitReply": "返信",
         "Global.Replies": "件の返信"
     }
     '::JSONB

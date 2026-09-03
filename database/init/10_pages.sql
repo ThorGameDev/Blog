@@ -22,8 +22,11 @@ INSERT INTO page_types (
     'HasComments',
     '
     {
+        "Global.CommentSectionHeader": "Text",
+        "Global.SubmitComment": "Text",
+        "Global.LoginToComment": "Text",
         "Global.Replies": "Text",
-        "CommentSection": "CommentSection"
+        "Global.SubmitReply": "Text"
     }
     '::JSONB,
     NULL
@@ -34,7 +37,8 @@ INSERT INTO page_types (
     'BlogPage',
     '
     {
-        "Content": "Content"
+        "Content": "Content",
+        "CommentSection": "CommentSection"
     }
     '::JSONB,
     'http://nginx-frontend:8080/templates/blogpage.html'
@@ -92,7 +96,7 @@ INSERT INTO page_types (
 ),
 (
     103,
-    -1,
+    -2,
     'Comments',
     '
     {

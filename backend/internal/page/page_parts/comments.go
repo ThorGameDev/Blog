@@ -54,19 +54,35 @@ func getComments(translationId int, langCode string, containerId *int) string {
 
 		fmt.Fprintf(&commentsSection, `<div class=comment><h3>%s</h3><img src="%s"><p>%s</p>`, username, pfpURL, content)
 		if numChildren >= 1 {
-			fmt.Fprintf(&commentsSection, `<a href="%s?c=%d" class=commentExpand>%d{{ Global.Replies }}</a>`, newURL, commentId, numChildren)
+			fmt.Fprintf(&commentsSection, `<a href="%s?commentId=%d" class=commentExpand>%d{{ Global.Replies }}</a>`, newURL, commentId, numChildren)
 		}
 		commentsSection.WriteString(`</div>`)
 	}
 	return commentsSection.String()
 }
 
-func GenerateCommentSection(translationId int, langCode string) string {
-	return getComments(translationId, langCode, nil)
+func GenerateCommentSection(uid int, translationId int, langCode string) string {
+	var commentSection strings.Builder
+	commentSection.WriteString(`<h2>{{ Global.CommentSectionHeader }}</h2>`)
+	commentSection.WriteString(`<div id=commentSection>`)
+	// Add the "Reply to" form if logged in
+	if uid != -1 {
+		fmt.Fprintf(&commentSection, `<form action="/api/blog/comment?translationId=%d&lang=%s" method=post>`, translationId, langCode)
+		commentSection.WriteString(`<textarea name=replyData></textarea>`)
+		commentSection.WriteString(`<button type=submit>{{ Global.SubmitComment }}</button>`)
+		commentSection.WriteString(`</form>`)
+	} else {
+		commentSection.WriteString(`<p>{{ Global.LoginToComment }}</p>`)
+	}
+	commentSection.WriteString(`<div class=comments>`)
+	commentSection.WriteString(getComments(translationId, langCode, nil))
+	commentSection.WriteString(`</div></div>`)
+
+	return commentSection.String()
 }
 
-func GenerateCommentInfo(langCode string, queryParams url.Values) string {
-	commentId, err := strconv.Atoi(queryParams.Get("c"))
+func GenerateCommentInfo(uid int, langCode string, queryParams url.Values) string {
+	commentId, err := strconv.Atoi(queryParams.Get("commentId"))
 	if err != nil {
 		return ""
 	}
@@ -91,6 +107,16 @@ func GenerateCommentInfo(langCode string, queryParams url.Values) string {
 
 	var commentInfo strings.Builder
 	fmt.Fprintf(&commentInfo, `<div class=comment><h3>%s</h3><img src="%s"><p>%s</p>`, username, pfpURL, content)
+
+	// Add the "Reply to" form if logged in
+	if uid != -1 {
+		fmt.Fprintf(&commentInfo, `<form action="/api/blog/reply?commentId=%d&lang=%s" method=post>`, commentId, langCode)
+		commentInfo.WriteString(`<textarea name=replyData></textarea>`)
+		commentInfo.WriteString(`<button type=submit>{{ Global.SubmitReply }}</button>`)
+		commentInfo.WriteString(`</form>`)
+	}
+
+	// Add replies
 	commentInfo.WriteString("<div class=replies>")
 
 	replies := getComments(translationId, langCode, &commentId)

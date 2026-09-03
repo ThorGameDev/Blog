@@ -17,6 +17,10 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
     'en',
     '
     {
+        "Global.CommentSectionHeader": "Comments",
+        "Global.SubmitComment": "Comment",
+        "Global.LoginToComment": "Please log in to post a comment",
+        "Global.SubmitReply": "Reply",
         "Global.Replies": " Replies"
     }
     '::JSONB
