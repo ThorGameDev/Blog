@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"blogbackend/internal/api/api_blog"
 	"blogbackend/internal/api/api_creator"
 	"blogbackend/internal/api/api_security"
 	"blogbackend/internal/api/api_user"
@@ -21,6 +22,7 @@ func main() {
 	api_security.Register()
 	api_creator.Register()
 	api_user.Register()
+	api_blog.Register()
 
 	http.ListenAndServe(":8090", nil)
 }

@@ -68,7 +68,7 @@ func GenerateCommentSection(uid int, translationId int, langCode string) string 
 	// Add the "Reply to" form if logged in
 	if uid != -1 {
 		fmt.Fprintf(&commentSection, `<form action="/api/blog/comment?translationId=%d&lang=%s" method=post>`, translationId, langCode)
-		commentSection.WriteString(`<textarea name=replyData></textarea>`)
+		commentSection.WriteString(`<textarea name=commentData></textarea>`)
 		commentSection.WriteString(`<button type=submit>{{ Global.SubmitComment }}</button>`)
 		commentSection.WriteString(`</form>`)
 	} else {
