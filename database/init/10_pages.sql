@@ -1,16 +1,27 @@
 INSERT INTO page_types (
-    page_type_id, type_name, substitution_types, template_url
+    page_type_id, parent_page_type_id, type_name, substitution_types, template_url
 ) VALUES
 (
-    1,
-    'BlogPage',
+    -1,
+    NULL,
+    'Global',
     '
     {
         "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags",
-        "LangRedirects": "LangRedirects",
         "AccountDetails": "AccountDetails",
+        "LangRedirects": "LangRedirects"
+    }
+    '::JSONB,
+    NULL
+),
+(
+    1,
+    -1,
+    'BlogPage',
+    '
+    {
         "CommentSection": "CommentSection",
         "Content": "Content"
     }
@@ -19,13 +30,10 @@ INSERT INTO page_types (
 ),
 (
     100,
+    -1,
     'LoginPage',
     '
     {
-        "PageTitle": "Title",
-        "LangCode": "LangCode",
-        "LangTags": "LangTags",
-        "LangRedirects": "LangRedirects",
         "Errors": "Errors",
         "ReturnURL": "ReturnURL",
         "UsernamePrompt": "Text",
@@ -38,13 +46,10 @@ INSERT INTO page_types (
 ),
 (
     101,
+    -1,
     'SignupPage',
     '
     {
-        "PageTitle": "Title",
-        "LangCode": "LangCode",
-        "LangTags": "LangTags",
-        "LangRedirects": "LangRedirects",
         "Errors": "Errors",
         "ReturnURL": "ReturnURL",
         "UsernamePrompt": "Text",
@@ -58,13 +63,10 @@ INSERT INTO page_types (
 ),
 (
     102,
+    -1,
     'UserAccountPage',
     '
     {
-        "PageTitle": "Title",
-        "LangCode": "LangCode",
-        "LangTags": "LangTags",
-        "LangRedirects": "LangRedirects",
         "ChangePassPrompt": "Text",
         "OldPassPrompt": "Text",
         "NewPassPrompt": "Text",
@@ -79,14 +81,10 @@ INSERT INTO page_types (
 ),
 (
     103,
+    -1,
     'Comments',
     '
     {
-        "PageTitle": "Title",
-        "LangCode": "LangCode",
-        "LangTags": "LangTags",
-        "LangRedirects": "LangRedirects",
-        "AccountDetails": "AccountDetails",
         "Comment": "Comment"
     }
     '::JSONB,
@@ -94,14 +92,10 @@ INSERT INTO page_types (
 ),
 (
     200,
+    -1,
     'CreatorDashboard',
     '
     {
-        "PageTitle": "Title",
-        "LangCode": "LangCode",
-        "LangTags": "LangTags",
-        "LangRedirects": "LangRedirects",
-        "AccountDetails": "AccountDetails",
         "ManagePage": "Text",
         "PermissionsPrompt": "Text",
         "SubmitPrompt": "Text",
@@ -113,14 +107,10 @@ INSERT INTO page_types (
 ),
 (
     201,
+    -1,
     'PageEditor',
     '
     {
-        "PageTitle": "Title",
-        "LangCode": "LangCode",
-        "LangTags": "LangTags",
-        "LangRedirects": "LangRedirects",
-        "AccountDetails": "AccountDetails",
         "SaveChangesPrompt": "Text",
         "AddTranslationPrompt": "Text",
         "NewTranslationUrlPrompt": "Text",

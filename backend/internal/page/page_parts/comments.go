@@ -6,6 +6,8 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/jackc/pgx/v5"
@@ -63,12 +65,17 @@ func GenerateCommentSection(translationId int, langCode string) string {
 	return getComments(translationId, langCode, nil)
 }
 
-func GenerateCommentInfo(langCode string, commentId int) string {
+func GenerateCommentInfo(langCode string, queryParams url.Values) string {
+	commentId, err := strconv.Atoi(queryParams.Get("c"))
+	if err != nil {
+		return ""
+	}
+
 	var content string
 	var username string
 	var pfpURL string
 	var translationId int
-	err := db.Pool.QueryRow(context.Background(),
+	err = db.Pool.QueryRow(context.Background(),
 		`SELECT content, users.username, profile_pictures.url, translation_id
 			FROM comments, users, profile_pictures
 			WHERE comment_id = $1

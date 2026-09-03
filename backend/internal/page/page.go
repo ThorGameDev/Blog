@@ -14,112 +14,10 @@ import (
 	"log/slog"
 	"net/http"
 	"net/url"
-	"strconv"
-	"strings"
 
 	"github.com/jackc/pgx/v5"
 	"github.com/valyala/fasttemplate"
 )
-
-func GenerateLangTags(currentLangCode string, alternatePages []utils_url.LangURL) string {
-	var domainURL string
-	err := db.Pool.QueryRow(context.Background(),
-		`SELECT val FROM site_settings WHERE key = 'URL'`).Scan(&domainURL)
-	if err != nil {
-		slog.Error("Could not get url from Site_settings!", "err", err)
-		return ""
-	}
-
-	var langTagCluster strings.Builder
-	for _, val := range alternatePages {
-		toURL := domainURL + "/" + val.LangCode + val.PageURL
-		fmt.Fprintf(&langTagCluster, `<link rel="alternate" hreflang="%s" href="%s">`, val.LangCode, toURL)
-		if val.IsPrimary {
-			fmt.Fprintf(&langTagCluster, `<link rel="alternate" hreflang="x-default" href="%s">`, toURL)
-		}
-	}
-
-	var langTags string
-	err = db.Pool.QueryRow(context.Background(),
-		`SELECT page_tags FROM languages WHERE lang_code = $1`,
-		currentLangCode).Scan(&langTags)
-	if err != nil {
-		slog.Error("Failed to get language specific tags from SQL", "err", err)
-		return ""
-	}
-
-	langTagCluster.WriteString(langTags)
-
-	return langTagCluster.String()
-}
-
-func GenerateLangLinks(currentLangCode string, alternatePages []utils_url.LangURL) string {
-	var langLinks strings.Builder
-	for _, val := range alternatePages {
-		if currentLangCode != val.LangCode {
-			toURL := "/" + val.LangCode + val.PageURL + val.QueryParams
-			fmt.Fprintf(&langLinks, `<a rel="alternate" hreflang="%s" href="%s">%s</a>`, val.LangCode, toURL, val.LangName)
-		}
-	}
-	return langLinks.String()
-}
-
-func createLoginLinks(fromPageUrl string, langCode string) string {
-	queryParamData := url.Values{}
-	queryParamData.Set("from", "/"+langCode+fromPageUrl)
-	queryParams := queryParamData.Encode()
-	var loginURL string
-	var loginTitle string
-	var signupURL string
-	var signupTitle string
-
-	const sql_query string = `SELECT url, title
-		FROM translations
-		WHERE page_id = (
-			SELECT page_id FROM translations
-				WHERE url = $1
-				AND lang_code = $2
-		)
-		AND lang_code = $3`
-	err := db.Pool.QueryRow(context.Background(), sql_query, "/login.html", "en", langCode).Scan(&loginURL, &loginTitle)
-	if err != nil {
-		slog.Error("Failed to get url and title of login", "err", err)
-		return ""
-	}
-	err = db.Pool.QueryRow(context.Background(), sql_query, "/signup.html", "en", langCode).Scan(&signupURL, &signupTitle)
-	if err != nil {
-		slog.Error("Failed to get url and title of signup", "err", err)
-		return ""
-	}
-
-	return fmt.Sprintf(`<a href="/%s%s?%s">%s</a><a href="/%s%s?%s">%s</a>`,
-		langCode, loginURL, queryParams, loginTitle,
-		langCode, signupURL, queryParams, signupTitle,
-	)
-}
-
-func GenerateAccountDetails(uid int, pageURL string, langCode string) string {
-	if uid == -1 {
-		return createLoginLinks(pageURL, langCode)
-	}
-	var username string
-	var pfp_url string
-	err := db.Pool.QueryRow(context.Background(),
-		`SELECT username, profile_pictures.url
-			FROM users, profile_pictures
-			WHERE uid = $1
-			AND profile_pictures.pfp_id = users.pfp_id`,
-		uid).Scan(&username, &pfp_url)
-	if err != nil {
-		if err == pgx.ErrNoRows {
-			return createLoginLinks(pageURL, langCode)
-		}
-		slog.Error("Error while fetching user information", "err", err)
-		return ""
-	}
-	accountPageURL := utils_url.TranslateURL("/en/user.html", nil, langCode)
-	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_url)
-}
 
 func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
 	newURL := utils_url.TranslateURL("/##"+fromPage, queryParams, langCode)
@@ -132,25 +30,54 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	pageURL := fullPageURL[3:]
 	queryParams := req.URL.Query()
 
-	// Get page typeset
-	var substitutionTypes map[string]string
+	// Get basic details on the page
+	var pageTypeId int
 	var templateUrl string
 	var requiredPrivilege int
 	var title string
 	var translationId int
 	err := db.Pool.QueryRow(context.Background(),
-		`SELECT substitution_types, template_url, required_privilege, title, translation_id
-			FROM page_types, pages, translations
-			WHERE pages.page_type_id = page_types.page_type_id
-			AND translations.page_id = pages.page_id
-			AND lang_code = $1
-			AND url = $2`,
-		langCode, pageURL).Scan(&substitutionTypes, &templateUrl, &requiredPrivilege, &title, &translationId)
+			`SELECT page_types.page_type_id, template_url, required_privilege, title, translation_id
+				FROM page_types, pages, translations
+				WHERE pages.page_type_id = page_types.page_type_id
+				AND translations.page_id = pages.page_id
+				AND lang_code = $1
+				AND url = $2`,
+		langCode, pageURL).Scan(&pageTypeId, &templateUrl, &requiredPrivilege, &title, &translationId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			badURLRedirect(w, req, pageURL, queryParams, langCode)
 		} else {
 			slog.Error("Critical SQL error while searching for page", "err", err)
+			http.Error(w, "Could not find page in SQL", http.StatusNotFound)
+		}
+		return
+	}
+
+	// Get page typeset
+	var substitutionTypes map[string]string
+	err = db.Pool.QueryRow(context.Background(),
+		`WITH RECURSIVE chain AS (
+			SELECT page_type_id, parent_page_type_id, substitution_types as merged
+				FROM page_types
+				WHERE page_type_id = $1
+
+			UNION ALL
+
+			SELECT p.page_type_id, p.parent_page_type_id, p.substitution_types || c.merged
+				FROM page_types p
+				JOIN chain c ON p.page_type_id = c.parent_page_type_id
+		)
+		SELECT merged
+			FROM chain
+			WHERE parent_page_type_id IS NULL`,
+		pageTypeId).Scan(&substitutionTypes)
+
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			badURLRedirect(w, req, pageURL, queryParams, langCode)
+		} else {
+			slog.Error("Critical SQL error while getting typeset from page", "err", err)
 			http.Error(w, "Could not find page in SQL", http.StatusNotFound)
 		}
 		return
@@ -192,17 +119,17 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	for key, val := range substitutionTypes {
 		switch val {
 		case "URL":
-			finalSubstitutions[key] = url.PathEscape(fullPageURL)
+			finalSubstitutions[key] = url.PathEscape("/" + langCode + pageURL)
 		case "Title":
 			finalSubstitutions[key] = title
 		case "LangCode":
 			finalSubstitutions[key] = langCode
 		case "LangTags":
-			finalSubstitutions[key] = GenerateLangTags(langCode, altURLs)
+			finalSubstitutions[key] = page_parts.GenerateLangTags(langCode, altURLs)
 		case "LangRedirects":
-			finalSubstitutions[key] = GenerateLangLinks(langCode, altURLs)
+			finalSubstitutions[key] = page_parts.GenerateLangLinks(langCode, altURLs)
 		case "Errors":
-			errorURL := req.URL.Query().Get("err")
+			errorURL := queryParams.Get("err")
 			if errorURL != "" {
 				errorMessage := utils_err.CodeToMessage(errorURL, langCode)
 				finalSubstitutions[key] = html.EscapeString(errorMessage)
@@ -210,24 +137,20 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 				finalSubstitutions[key] = ""
 			}
 		case "AccountDetails":
-			finalSubstitutions[key] = GenerateAccountDetails(uid, pageURL, langCode)
+			finalSubstitutions[key] = page_parts.GenerateAccountDetails(uid, pageURL, langCode)
 		case "ReturnURL":
-			returnURL := utils_url.SanitizeURL(req.URL.Query().Get("from"))
+			returnURL := utils_url.SanitizeURL(queryParams.Get("from"))
 			htmlEscaped := html.EscapeString(returnURL)
 			finalSubstitutions[key] = htmlEscaped
 		case "CommentSection":
 			finalSubstitutions[key] = page_parts.GenerateCommentSection(translationId, langCode)
 		case "Comment":
-			commentId, err := strconv.Atoi(queryParams.Get("c"))
-			if err != nil {
-				return
-			}
-			finalSubstitutions[key] = page_parts.GenerateCommentInfo(langCode, commentId)
+			finalSubstitutions[key] = page_parts.GenerateCommentInfo(langCode, queryParams)
 		case "Text", "TemplateText", "Content":
 			if substitutionValue, ok := substitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
 			} else {
-				slog.Warn("Untranslated content in", "url", fullPageURL, "key", key)
+				slog.Warn("Untranslated content in", "url", "/"+langCode+pageURL, "key", key)
 				finalSubstitutions[key] = ""
 			}
 		case "Creator.Dashboard":
@@ -235,7 +158,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		case "Creator.PageTypeDropdown":
 			finalSubstitutions[key] = page_parts.GeneratePageTypeDropdown()
 		case "Creator.Editor":
-			finalSubstitutions[key] = page_parts.GenerateEditor(langCode, req.URL.Query().Get("page"))
+			finalSubstitutions[key] = page_parts.GenerateEditor(langCode, queryParams.Get("page"))
 		case "User.AccountDetails":
 			finalSubstitutions[key] = page_parts.GenerateUserPage(uid, pageURL, langCode)
 		}

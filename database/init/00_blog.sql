@@ -51,10 +51,21 @@ CREATE TABLE error_codes (
 
 CREATE TABLE page_types (
     page_type_id SERIAL,
+    parent_page_type_id INT,
     type_name VARCHAR(64) NOT NULL,
     substitution_types JSONB NOT NULL,
-    template_url VARCHAR(256) NOT NULL,
+    template_url VARCHAR(256),
+    FOREIGN KEY (parent_page_type_id) REFERENCES page_types(page_type_id),
     PRIMARY KEY (page_type_id)
+);
+
+CREATE TABLE sitewide_tests (
+    test_id VARCHAR(4) NOT NULL,
+    page_type_id INT NOT NULL,
+    lang_code VARCHAR(2) NOT NULL,
+    FOREIGN KEY (lang_code) REFERENCES languages(lang_code),
+    FOREIGN KEY (page_type_id) REFERENCES page_types(page_type_id),
+    PRIMARY KEY (test_id, page_type_id, lang_code)
 );
 
 CREATE TABLE pages (
