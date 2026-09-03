@@ -19,7 +19,8 @@ func GeneratePageTypeDropdown() string {
 	dropdown.WriteString(`<select name="pageType" id="pageType">`)
 
 	rows, err := db.Pool.Query(context.Background(),
-		`SELECT page_type_id, type_name from page_types`)
+		`SELECT page_type_id, type_name FROM page_types
+			WHERE template_url IS NOT NULL`)
 	if err != nil {
 		dropdown.WriteString(`</select>`)
 		return dropdown.String()

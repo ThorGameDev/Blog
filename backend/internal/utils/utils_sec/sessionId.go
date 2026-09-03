@@ -62,14 +62,11 @@ func RegisterSession(w http.ResponseWriter, uid int) error {
 }
 
 func GetUID(req *http.Request) int {
-	slog.Info("Getting info on session id")
 	sessionId, err := req.Cookie("session_id")
-	slog.Info("", "sessionId", sessionId)
 	if err != nil {
 		if err != http.ErrNoCookie {
 			slog.Error("Unknown cookie error", "err", err)
 		}
-		slog.Error("cookie error", "err", err)
 		return -1
 	}
 	var uid int

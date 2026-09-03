@@ -60,12 +60,11 @@ CREATE TABLE page_types (
 );
 
 CREATE TABLE sitewide_tests (
-    test_id VARCHAR(4) NOT NULL,
-    page_type_id INT NOT NULL,
+    test_id VARCHAR(8) NOT NULL,
     lang_code VARCHAR(2) NOT NULL,
+    substitutions JSONB NOT NULL,
     FOREIGN KEY (lang_code) REFERENCES languages(lang_code),
-    FOREIGN KEY (page_type_id) REFERENCES page_types(page_type_id),
-    PRIMARY KEY (test_id, page_type_id, lang_code)
+    PRIMARY KEY (test_id, lang_code)
 );
 
 CREATE TABLE pages (

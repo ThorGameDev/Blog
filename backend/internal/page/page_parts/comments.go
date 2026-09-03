@@ -54,7 +54,7 @@ func getComments(translationId int, langCode string, containerId *int) string {
 
 		fmt.Fprintf(&commentsSection, `<div class=comment><h3>%s</h3><img src="%s"><p>%s</p>`, username, pfpURL, content)
 		if numChildren >= 1 {
-			fmt.Fprintf(&commentsSection, `<a href="%s?c=%d" class=commentExpand>%d Replies</a>`, newURL, commentId, numChildren)
+			fmt.Fprintf(&commentsSection, `<a href="%s?c=%d" class=commentExpand>%d{{ Global.Replies }}</a>`, newURL, commentId, numChildren)
 		}
 		commentsSection.WriteString(`</div>`)
 	}

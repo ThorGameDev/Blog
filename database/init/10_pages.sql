@@ -17,12 +17,23 @@ INSERT INTO page_types (
     NULL
 ),
 (
-    1,
+    -2,
     -1,
+    'HasComments',
+    '
+    {
+        "Global.Replies": "Text",
+        "CommentSection": "CommentSection"
+    }
+    '::JSONB,
+    NULL
+),
+(
+    1,
+    -2,
     'BlogPage',
     '
     {
-        "CommentSection": "CommentSection",
         "Content": "Content"
     }
     '::JSONB,

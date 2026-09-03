@@ -1,4 +1,4 @@
-INSERT INTO languages VALUES
+INSERT INTO languages (lang_code, lang_name, page_tags, is_primary) VALUES
 (
     'ja',
     '日本語',
@@ -6,7 +6,7 @@ INSERT INTO languages VALUES
     false
 );
 
-INSERT INTO error_codes VALUES
+INSERT INTO error_codes (code_id, lang_code, content) VALUES
 ('AccExs', 'ja', 'そのアカウントは既にあります！'),
 ('UmtchP', 'ja', 'パスワードと確認は同じではありません！'),
 ('UWrong', 'ja', 'ユーザー名は正しくない！'),
@@ -15,6 +15,17 @@ INSERT INTO error_codes VALUES
 ('NoInfo', 'ja', 'このページの情報はありません。'),
 ('SesExp', 'ja', '君のセッションは消えました。'),
 ('NoPerm', 'ja', '許可がありません。');
+
+INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
+(
+    '00000001',
+    'ja',
+    '
+    {
+        "Global.Replies": "件の返信"
+    }
+    '::JSONB
+)
 
 -- Ensure that the ordering of the translations is independent of the English order for initialization
 ALTER SEQUENCE translations_translation_id_seq RESTART WITH 101;

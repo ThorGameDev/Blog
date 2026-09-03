@@ -37,12 +37,12 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	var title string
 	var translationId int
 	err := db.Pool.QueryRow(context.Background(),
-			`SELECT page_types.page_type_id, template_url, required_privilege, title, translation_id
-				FROM page_types, pages, translations
-				WHERE pages.page_type_id = page_types.page_type_id
-				AND translations.page_id = pages.page_id
-				AND lang_code = $1
-				AND url = $2`,
+		`SELECT page_types.page_type_id, template_url, required_privilege, title, translation_id
+			FROM page_types, pages, translations
+			WHERE pages.page_type_id = page_types.page_type_id
+			AND translations.page_id = pages.page_id
+			AND lang_code = $1
+			AND url = $2`,
 		langCode, pageURL).Scan(&pageTypeId, &templateUrl, &requiredPrivilege, &title, &translationId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -74,12 +74,8 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		pageTypeId).Scan(&substitutionTypes)
 
 	if err != nil {
-		if errors.Is(err, pgx.ErrNoRows) {
-			badURLRedirect(w, req, pageURL, queryParams, langCode)
-		} else {
-			slog.Error("Critical SQL error while getting typeset from page", "err", err)
-			http.Error(w, "Could not find page in SQL", http.StatusNotFound)
-		}
+		slog.Error("Critical SQL error while getting typeset from page", "err", err)
+		http.Error(w, "Could not find page in SQL", http.StatusNotFound)
 		return
 	}
 
@@ -93,13 +89,41 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 
+	// Get test id
+	testId := queryParams.Get("test")
+	siteTestId := "00000001" // Assume default for better side-by-side testing
+
+	// If the testId is not being set by query parameters, read from cookies
+	if queryParams.Has("test") {
+		siteTestId = "00000000"
+		testId = "00"
+		// TODO: AB testing logic
+	}
+
+	// Get global substitutions
+	var globalSubstitutions map[string]string
+	err = db.Pool.QueryRow(context.Background(),
+		`SELECT substitutions FROM sitewide_tests
+			WHERE lang_code = $1
+			ORDER BY (test_id = $2) DESC
+			LIMIT 1`,
+		langCode, siteTestId).Scan(&globalSubstitutions)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			slog.Error("Critical SQL error while getting global substitutions", "err", err)
+		}
+		http.Error(w, "Could not find page in SQL", http.StatusNotFound)
+		return
+	}
+
 	// Get substitutions
 	var substitutions map[string]string
 	err = db.Pool.QueryRow(context.Background(),
 		`SELECT substitutions FROM tests
 			WHERE translation_id = $1
-			ORDER BY (test_id = $2) DESC`,
-		translationId, queryParams.Get("test")).Scan(&substitutions)
+			ORDER BY (test_id = $2) DESC
+			LIMIT 1`,
+		translationId, testId).Scan(&substitutions)
 	if err != nil {
 		if !errors.Is(err, pgx.ErrNoRows) {
 			slog.Error("Critical SQL error while getting page content", "err", err)
@@ -149,6 +173,8 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		case "Text", "TemplateText", "Content":
 			if substitutionValue, ok := substitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
+			} else if globalSubstitutionValue, ok := globalSubstitutions[key]; ok {
+				finalSubstitutions[key] = globalSubstitutionValue
 			} else {
 				slog.Warn("Untranslated content in", "url", "/"+langCode+pageURL, "key", key)
 				finalSubstitutions[key] = ""
@@ -167,7 +193,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	// Resolve template texts
 	for key, val := range substitutionTypes {
 		switch val {
-		case "TemplateText", "Creator.Dashboard", "Creator.Editor":
+		case "TemplateText", "Creator.Dashboard", "Creator.Editor", "CommentSection", "Comments":
 			subTemplate := fasttemplate.New(finalSubstitutions[key].(string), "{{ ", " }}")
 			finalSubstitutions[key] = subTemplate.ExecuteString(finalSubstitutions)
 		}

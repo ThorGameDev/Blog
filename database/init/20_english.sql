@@ -1,7 +1,7 @@
-INSERT INTO languages VALUES
+INSERT INTO languages (lang_code, lang_name, page_tags, is_primary) VALUES
 ('en', 'English', '', true);
 
-INSERT INTO error_codes VALUES
+INSERT INTO error_codes (code_id, lang_code, content) VALUES
 ('AccExs', 'en', 'That account already exists!'),
 ('UmtchP', 'en', 'The passwords do not match!'),
 ('UWrong', 'en', 'Incorrect username!'),
@@ -10,6 +10,17 @@ INSERT INTO error_codes VALUES
 ('NoInfo', 'en', 'No analytics avaliable yet!'),
 ('SesExp', 'en', 'Your session expired!'),
 ('NoPerm', 'en', 'You do not have enough permissions');
+
+INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
+(
+    '00000001',
+    'en',
+    '
+    {
+        "Global.Replies": " Replies"
+    }
+    '::JSONB
+);
 
 INSERT INTO translations (page_id, lang_code, title, url) VALUES
 (1, 'en', 'Login', '/login.html'),
