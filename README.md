@@ -30,9 +30,10 @@ This is a Work In Progress Blog engine to host my own personal blog.
 - Simple Bilingual page translation system
 - Side by side page editor
 - Simple comment threads
+- Simple AB testing system
 
 ## Planned Features (Roughly in planned order)
-- AB testing system
+- Enhance with JS
 - A half decent looking fronted
 - Selfhost with a domain and HTTPS
 

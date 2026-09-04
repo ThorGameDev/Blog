@@ -29,7 +29,7 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
         "Global.Replies": "件の返信"
     }
     '::JSONB
-)
+);
 
 -- Ensure that the ordering of the translations is independent of the English order for initialization
 ALTER SEQUENCE translations_translation_id_seq RESTART WITH 101;

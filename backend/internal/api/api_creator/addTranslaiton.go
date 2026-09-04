@@ -2,6 +2,7 @@ package api_creator
 
 import (
 	"blogbackend/internal/utils/db"
+	"blogbackend/internal/utils/utils_url"
 	"context"
 	"log/slog"
 	"net/http"
@@ -41,4 +42,7 @@ func addTranslation(w http.ResponseWriter, req *http.Request) {
 		http.Error(w, "Created a weird number of rows!", http.StatusInternalServerError)
 		return
 	}
+
+	fromURL := utils_url.SanitizeURL(req.Header.Get("Referer"))
+	http.Redirect(w, req, fromURL, http.StatusSeeOther)
 }

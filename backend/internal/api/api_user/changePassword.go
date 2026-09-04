@@ -3,6 +3,7 @@ package api_user
 import (
 	"blogbackend/internal/utils/db"
 	"blogbackend/internal/utils/utils_sec"
+	"blogbackend/internal/utils/utils_url"
 	"context"
 	"log/slog"
 	"net/http"
@@ -72,4 +73,7 @@ func changePassword(w http.ResponseWriter, req *http.Request) {
 		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
 		return
 	}
+
+	fromURL := utils_url.SanitizeURL(req.Header.Get("Referer"))
+	http.Redirect(w, req, fromURL, http.StatusSeeOther)
 }

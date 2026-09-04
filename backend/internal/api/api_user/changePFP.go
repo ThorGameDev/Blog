@@ -4,9 +4,9 @@ import (
 	"blogbackend/internal/utils/db"
 	"blogbackend/internal/utils/utils_err"
 	"blogbackend/internal/utils/utils_sec"
+	"blogbackend/internal/utils/utils_url"
 	"context"
 	"errors"
-	"fmt"
 	"io"
 	"log/slog"
 	"mime/multipart"
@@ -159,9 +159,6 @@ func changePFP(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	fmt.Fprintf(w, "File uploaded successfully: ")
-	fmt.Fprintf(w, uploadFile)
-
 	// Link new profile picture in place of old one
 	status, err := db.Pool.Exec(context.Background(),
 		`WITH new_pfp AS (
@@ -185,4 +182,7 @@ func changePFP(w http.ResponseWriter, req *http.Request) {
 
 	// Delete the old profile picture from disk
 	deleteUnusedPFPs()
+
+	fromURL := utils_url.SanitizeURL(req.Header.Get("Referer"))
+	http.Redirect(w, req, fromURL, http.StatusSeeOther)
 }

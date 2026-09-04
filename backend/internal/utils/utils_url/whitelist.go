@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"log/slog"
+	"net/url"
+	"strings"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -38,18 +40,27 @@ func SanitizeLangCode(rawLangCode string) string {
 }
 
 func SanitizeURL(rawURL string) string {
+	urlVer, err := url.Parse(rawURL)
+	if err != nil {
+		return "/index.html"
+	}
+
+	if !strings.HasPrefix(urlVer.Path, "/") {
+		urlVer.Path = "/" + urlVer.Path
+	}
+
 	// Make sure URL is long enough to contain a langCode
-	if len(rawURL) <= 4 {
+	if len(urlVer.Path) <= 4 {
 		return "/index.html"
 	}
 
 	// Split url into code and location
-	langCode := rawURL[1:3]
-	pageURL := rawURL[3:]
+	langCode := urlVer.Path[1:3]
+	pageURL := urlVer.Path[3:]
 
 	// Check if page exists in website
 	var exists bool
-	err := db.Pool.QueryRow(context.Background(),
+	err = db.Pool.QueryRow(context.Background(),
 		`SELECT EXISTS(
 			SELECT 1 FROM translations, languages
 			WHERE languages.lang_code = translations.lang_code

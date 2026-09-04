@@ -10,21 +10,7 @@ import (
 	"strconv"
 )
 
-func postComment(translationId int, uid int, containerId *int, content string) {
-	status, err := db.Pool.Exec(context.Background(),
-		"INSERT INTO comments (translation_id, uid, container_id, content) VALUES ($1, $2, $3, $4)",
-		translationId, uid, containerId, content)
-	if err != nil {
-		slog.Error("Failed to create comment! ", "err", err)
-		return
-	}
-	if status.RowsAffected() != 1 {
-		slog.Error("Created a weird number of rows! ", "rowsAffected", status.RowsAffected())
-		return
-	}
-}
-
-func comment(w http.ResponseWriter, req *http.Request) {
+func reply(w http.ResponseWriter, req *http.Request) {
 	if req.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -42,19 +28,33 @@ func comment(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	translationId, err := strconv.Atoi(req.URL.Query().Get("translationId"))
+	commentId, err := strconv.Atoi(req.URL.Query().Get("commentId"))
 	if err != nil {
 		http.Error(w, "Error parsing query parameters", http.StatusBadRequest)
 		return
 	}
+
 	currentTranslation := req.URL.Query().Get("lang")
 	if currentTranslation == "" {
 		currentTranslation = "en"
 	}
 
-	commentData := req.PostForm.Get("commentData")
+	replyData := req.PostForm.Get("replyData")
 
-	postComment(translationId, uid, nil, commentData)
+	var translationId int
+	err = db.Pool.QueryRow(context.Background(),
+		`SELECT translations.translation_id translation_id
+			FROM comments, translations
+			WHERE comment_id = $1
+			AND comments.translation_id = translations.translation_id`,
+		commentId).Scan(&translationId)
+	if err != nil {
+		slog.Error("", "err", err)
+		http.Error(w, "Critical SQL error", http.StatusInternalServerError)
+		return
+	}
+
+	postComment(translationId, uid, &commentId, replyData)
 
 	fromURL := utils_url.SanitizeURL(req.Header.Get("Referer"))
 	http.Redirect(w, req, fromURL, http.StatusSeeOther)

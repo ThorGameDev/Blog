@@ -46,7 +46,7 @@ func GetAlternateURLs(fromPage string, fromLangCode string, queryParams url.Valu
 }
 
 func TranslateQueryParams(queryParams url.Values, newLangCode string) string {
-	// If there aren't actually any query prams, return nothing
+	// If there aren't actually any query params, return nothing
 	if len(queryParams) == 0 {
 		return ""
 	}

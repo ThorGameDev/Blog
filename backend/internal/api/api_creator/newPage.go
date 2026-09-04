@@ -4,7 +4,6 @@ import (
 	"blogbackend/internal/utils/db"
 	"blogbackend/internal/utils/utils_url"
 	"context"
-	"fmt"
 	"log/slog"
 	"net/http"
 )
@@ -34,10 +33,6 @@ func newPage(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	pageQueryParam := fmt.Sprintf("?page=%d", pageId)
-
-	currentTranslation := req.URL.Query().Get("lang")
-	redirectURL := utils_url.TranslateURL("/en/creator/editor.html", nil, currentTranslation)
-
-	http.Redirect(w, req, redirectURL+pageQueryParam, http.StatusSeeOther)
+	fromURL := utils_url.SanitizeURL(req.Header.Get("Referer"))
+	http.Redirect(w, req, fromURL, http.StatusSeeOther)
 }
