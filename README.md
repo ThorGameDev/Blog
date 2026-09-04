@@ -29,9 +29,9 @@ This is a Work In Progress Blog engine to host my own personal blog.
 - SQL page management
 - Simple Bilingual page translation system
 - Side by side page editor
+- Simple comment threads
 
 ## Planned Features (Roughly in planned order)
-- Comment threads
 - AB testing system
 - A half decent looking fronted
 - Selfhost with a domain and HTTPS
