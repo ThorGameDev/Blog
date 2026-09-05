@@ -22,6 +22,7 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
     'ja',
     '
     {
+        "Global.BlogTitle": "ブログ",
         "Global.CommentSectionHeader": "コメント",
         "Global.SubmitComment": "コメントする",
         "Global.LoginToComment": "ログインしてください。",

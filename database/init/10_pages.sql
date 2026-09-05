@@ -7,11 +7,11 @@ INSERT INTO page_types (
     'Global',
     '
     {
+        "Global.BlogTitle": "Text",
+        "TopBar": "TopBar",
         "PageTitle": "Title",
         "LangCode": "LangCode",
-        "LangTags": "LangTags",
-        "AccountDetails": "AccountDetails",
-        "LangRedirects": "LangRedirects"
+        "LangTags": "LangTags"
     }
     '::JSONB,
     NULL

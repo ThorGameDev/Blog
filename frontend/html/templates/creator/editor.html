@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ LangCode }}">
 	<head>
-		<title>Blog: {{ PageTitle }}</title>
+        <title>{{ Global.BlogTitle }}: {{ PageTitle }}</title>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" href="/style/site.css">
 		<link rel="stylesheet" href="/style/editor.css">
@@ -9,9 +9,8 @@
 		{{ LangTags }}
 	</head>
 	<body>
+        {{ TopBar }}
 		<h1>{{ PageTitle }}</h1>
-		{{ AccountDetails }}
 		{{ Editor }}
-		{{ LangRedirects }}
 	</body>
 </html>

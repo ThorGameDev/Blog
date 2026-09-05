@@ -44,7 +44,7 @@ func createLoginLinks(fromPageUrl string, langCode string) string {
 		langCode, signupURL, queryParams, signupTitle,
 	)
 }
-func GenerateAccountDetails(uid int, pageURL string, langCode string) string {
+func generateAccountDetails(uid int, pageURL string, langCode string) string {
 	if uid == -1 {
 		return createLoginLinks(pageURL, langCode)
 	}

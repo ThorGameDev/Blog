@@ -22,8 +22,8 @@ func GetAlternateURLs(fromPage string, fromLangCode string, queryParams url.Valu
 		`SELECT translations.lang_code, url, lang_name, is_primary FROM translations, languages
 			WHERE languages.lang_code = translations.lang_code
 			AND page_id = (
-				SELECT page_id FROM translations 
-					WHERE lang_code = $1 
+				SELECT page_id FROM translations
+					WHERE lang_code = $1
 					AND url = $2
 			)`,
 		fromLangCode, fromPage,
