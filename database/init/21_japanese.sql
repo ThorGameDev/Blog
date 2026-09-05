@@ -23,6 +23,8 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
     '
     {
         "Global.BlogTitle": "ブログ",
+        "Global.AGPLv3License": "AGPLv3 License",
+        "Global.SourceCode": "ソースコード",
         "Global.CommentSectionHeader": "コメント",
         "Global.SubmitComment": "コメントする",
         "Global.LoginToComment": "ログインしてください。",

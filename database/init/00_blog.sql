@@ -6,7 +6,10 @@ CREATE TABLE site_settings (
 INSERT INTO site_settings (key, val) VALUES
 ('Version', '00.00.00'), -- Will be critical for adding version migration scripts eventually.
 ('Name', 'Blog'),
-('URL', 'http://localhost:8080');
+('URL', 'http://localhost:8080'),
+('Copyright', 'Copyright © 2026  ThorGameDev'),
+('SourceCodeURL', 'https://github.com/ThorGameDev/Blog'),
+('LicenseURL', 'https://www.gnu.org/licenses/agpl-3.0.en.html');
 
 CREATE TABLE profile_pictures (
     pfp_id SERIAL,

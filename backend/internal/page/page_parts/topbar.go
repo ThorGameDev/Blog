@@ -15,12 +15,12 @@ func GenerateTopBar(uid int, pageURL string, langCode string, queryParams url.Va
 	topbar.WriteString("<nav>")
 
 	// get list of all URLs for the topbar
-	pageList, err := utils_url.GetPagesOfIndex(0, langCode, 2)
+	pageList, err := utils_url.GetPagesOfIndex(langCode, 2)
 	if err != nil {
 		slog.Error("Error while getting index", "err", err)
 	}
 	for _, val := range pageList {
-		fmt.Fprintf(&topbar, `<a href="%s">%s</a>`, val.PageURL, val.PageTitle)
+		fmt.Fprintf(&topbar, `<a href="/%s%s">%s</a>`, langCode, val.PageURL, val.PageTitle)
 	}
 	topbar.WriteString("</nav>")
 	topbar.WriteString(generateAccountDetails(uid, pageURL, langCode))
@@ -30,12 +30,12 @@ func GenerateTopBar(uid int, pageURL string, langCode string, queryParams url.Va
 	topbar.WriteString("<nav id=sideBar>")
 
 	// get list of all URLs for the sidebar
-	pageList, err = utils_url.GetPagesOfIndex(0, langCode, 1)
+	pageList, err = utils_url.GetPagesOfIndex(langCode, 1)
 	if err != nil {
 		slog.Error("Error while getting index", "err", err)
 	}
 	for _, val := range pageList {
-		fmt.Fprintf(&topbar, `<a href="%s">%s</a>`, val.PageURL, val.PageTitle)
+		fmt.Fprintf(&topbar, `<a href="/%s%s">%s</a>`, langCode, val.PageURL, val.PageTitle)
 	}
 
 	// Add the "Swap translation" links to the bottom
@@ -44,4 +44,3 @@ func GenerateTopBar(uid int, pageURL string, langCode string, queryParams url.Va
 
 	return topbar.String()
 }
-

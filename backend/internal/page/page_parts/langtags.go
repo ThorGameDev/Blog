@@ -11,13 +11,7 @@ import (
 )
 
 func GenerateLangTags(currentLangCode string, pageURL string, queryParams url.Values) string {
-	var domainURL string
-	err := db.Pool.QueryRow(context.Background(),
-		`SELECT val FROM site_settings WHERE key = 'URL'`).Scan(&domainURL)
-	if err != nil {
-		slog.Error("Could not get url from Site_settings!", "err", err)
-		return ""
-	}
+	domainURL := db.GetSiteSetting("URL")
 
 	altURLs, err := utils_url.GetAlternateURLs(pageURL, currentLangCode, nil)
 	if err != nil {

@@ -170,13 +170,15 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 			finalSubstitutions[key] = page_parts.GenerateUserPage(uid, pageURL, langCode)
 		case "TopBar":
 			finalSubstitutions[key] = page_parts.GenerateTopBar(uid, pageURL, langCode, queryParams)
+		case "BottomBar":
+			finalSubstitutions[key] = page_parts.GenerateBottomBar(langCode)
 		}
 	}
 
 	// Resolve template texts
 	for key, val := range substitutionTypes {
 		switch val {
-		case "TemplateText", "Creator.Dashboard", "Creator.Editor", "CommentSection", "Comment", "TopBar":
+		case "TemplateText", "Creator.Dashboard", "Creator.Editor", "CommentSection", "Comment", "TopBar", "BottomBar":
 			subTemplate := fasttemplate.New(finalSubstitutions[key].(string), "{{ ", " }}")
 			finalSubstitutions[key] = subTemplate.ExecuteString(finalSubstitutions)
 		}

@@ -18,6 +18,8 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
     '
     {
         "Global.BlogTitle": "Blog",
+        "Global.AGPLv3License": "AGPLv3 License",
+        "Global.SourceCode": "Source Code",
         "Global.CommentSectionHeader": "Comments",
         "Global.SubmitComment": "Comment",
         "Global.LoginToComment": "Please log in to post a comment",

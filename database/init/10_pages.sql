@@ -8,7 +8,10 @@ INSERT INTO page_types (
     '
     {
         "Global.BlogTitle": "Text",
+        "Global.AGPLv3License": "Text",
+        "Global.SourceCode": "Text",
         "TopBar": "TopBar",
+        "BottomBar": "BottomBar",
         "PageTitle": "Title",
         "LangCode": "LangCode",
         "LangTags": "LangTags"

@@ -12,7 +12,7 @@ type PageDetails struct {
 	PageTitle string
 }
 
-func GetPagesOfIndex(uid int, langCode string, neededIndexBits int) ([]PageDetails, error) {
+func GetPagesOfIndex(langCode string, neededIndexBits int) ([]PageDetails, error) {
 	rows, err := db.Pool.Query(context.Background(),
 		`SELECT url, title FROM translations, pages
 			WHERE (page_index::int & $1) = $1
