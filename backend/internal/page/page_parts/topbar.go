@@ -3,6 +3,7 @@ package page_parts
 import (
 	"blogbackend/internal/utils/utils_url"
 	"fmt"
+	"log/slog"
 	"net/url"
 	"strings"
 )
@@ -13,18 +14,31 @@ func GenerateTopBar(uid int, pageURL string, langCode string, queryParams url.Va
 	topbar.WriteString("<h2>{{ Global.BlogTitle }}</h2>")
 	topbar.WriteString("<nav>")
 
-	// Just a few placeholder links, until I figure out what actually goes in a top bar
-	homelink := utils_url.TranslateURL("/en/blog/page1.html", nil, langCode)
-	fmt.Fprintf(&topbar, `<a href="%s">Page1</a>`, homelink)
-	creatorDashboard := utils_url.TranslateURL("/en/creator/dashboard.html", nil, langCode)
-	fmt.Fprintf(&topbar, `<a href="%s">Creator Dashboard</a>`, creatorDashboard)
-
+	// get list of all URLs for the topbar
+	pageList, err := utils_url.GetPagesOfIndex(0, langCode, 2)
+	if err != nil {
+		slog.Error("Error while getting index", "err", err)
+	}
+	for _, val := range pageList {
+		fmt.Fprintf(&topbar, `<a href="%s">%s</a>`, val.PageURL, val.PageTitle)
+	}
 	topbar.WriteString("</nav>")
 	topbar.WriteString(generateAccountDetails(uid, pageURL, langCode))
 	topbar.WriteString("</div>")
 
 	// Work on side bar
 	topbar.WriteString("<nav id=sideBar>")
+
+	// get list of all URLs for the sidebar
+	pageList, err = utils_url.GetPagesOfIndex(0, langCode, 1)
+	if err != nil {
+		slog.Error("Error while getting index", "err", err)
+	}
+	for _, val := range pageList {
+		fmt.Fprintf(&topbar, `<a href="%s">%s</a>`, val.PageURL, val.PageTitle)
+	}
+
+	// Add the "Swap translation" links to the bottom
 	topbar.WriteString(generateLangLinks(langCode, pageURL, queryParams))
 	topbar.WriteString("</nav>")
 

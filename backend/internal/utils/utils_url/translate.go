@@ -31,6 +31,8 @@ func GetAlternateURLs(fromPage string, fromLangCode string, queryParams url.Valu
 	if err != nil {
 		return nil, err
 	}
+	defer rows.Close()
+
 	return pgx.CollectRows(
 		rows,
 		func(row pgx.CollectableRow) (LangURL, error) {

@@ -44,6 +44,17 @@ INSERT INTO page_types (
     'http://nginx-frontend:8080/templates/blogpage.html'
 ),
 (
+    2,
+    -1,
+    'InfoPage',
+    '
+    {
+        "Content": "Content"
+    }
+    '::JSONB,
+    'http://nginx-frontend:8080/templates/infopage.html'
+),
+(
     100,
     -1,
     'LoginPage',
@@ -137,13 +148,14 @@ INSERT INTO page_types (
     'http://nginx-frontend:8080/templates/creator/editor.html'
 );
 
-INSERT INTO pages (page_type_id, required_privilege) VALUES
-(100, 0),
-(101, 0),
-(102, 0),
-(103, 0),
+INSERT INTO pages (page_type_id, required_privilege, page_index) VALUES
+(100, 0, B'000'),
+(101, 0, B'000'),
+(102, 0, B'000'),
+(103, 0, B'000'),
 -- Set to 6 latter. 0 for testing (Because signing in every time is a pain)
-(200, 0),
-(201, 0),
+(200, 0, B'010'), -- Shown in top bar for testing
+(201, 0, B'000'),
 -- Eventually needs removed. Needed for testing default pages
-(1, 0);
+(1, 0, B'001'),
+(2, 0, B'111'); -- about.html

@@ -44,7 +44,8 @@ INSERT INTO translations (page_id, lang_code, title, url) VALUES
     'Editor',
     '/creator/editor.html'
 ),
-(7, 'en', 'Page 1', '/blog/page1.html');
+(7, 'en', 'Page 1', '/blog/page1.html'),
+(8, 'en', 'About', '/info/about.html');
 
 INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 (
@@ -115,7 +116,8 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 ('01', 7, '{ "Content": "Hello world! Welcome to page 1!" }'::JSONB),
 ('02', 7, '{ "Content": "Hello World! Welcome to Page 1!" }'::JSONB),
 ('03', 7, '{ "Content": "Hello world!!! Welcome to page 1!!!" }'::JSONB),
-('04', 7, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB);
+('04', 7, '{ "Content": "Hello World!!! Welcome to Page 1!!!" }'::JSONB),
+('01', 8, '{ "Content": "This is a blog" }'::JSONB);
 
 -- Meaningless temporary test data
 

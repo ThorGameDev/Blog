@@ -52,7 +52,9 @@ INSERT INTO translations (page_id, lang_code, title, url) VALUES
     'エディタ',
     '/クリエイター/エディタ.html'
 ),
-(7, 'ja', 'ページ１', '/ブログ/ページ１.html');
+(7, 'ja', 'ページ１', '/ブログ/ページ１.html'),
+(8, 'ja', 'について', '/じょうほう/について.html');
+
 
 INSERT INTO tests (test_id, translation_id, substitutions) VALUES
 (
@@ -121,4 +123,5 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
     '::JSONB
 ),
 ('01', 107, '{ "Content": "ハローワールド！ページ１えようこそ！" }'::JSONB),
-('02', 107, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB);
+('02', 107, '{ "Content": "こんいちわ世界！ページ１えようこそ！" }'::JSONB),
+('01', 108, '{ "Content": "これはブログです。" }'::JSONB);

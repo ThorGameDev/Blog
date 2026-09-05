@@ -70,6 +70,7 @@ CREATE TABLE sitewide_tests (
 CREATE TABLE pages (
     page_id SERIAL,
     page_type_id INT NOT NULL,
+    page_index BIT(3) NOT NULL, -- Main Index, Topbar, Bottom Bar
     required_privilege INT NOT NULL,
     FOREIGN KEY (page_type_id) REFERENCES page_types(page_type_id),
     PRIMARY KEY (page_id)
