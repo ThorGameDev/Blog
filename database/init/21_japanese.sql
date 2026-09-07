@@ -95,7 +95,11 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
         "ConfirmPassPrompt": "パスワード確認",
         "UpdatePassPrompt": "更新",
         "SelectPFPPrompt": "写真を替える",
-        "UpdatePFPPrompt": "更新"
+        "UpdatePFPPrompt": "更新",
+        "LogoutPrompt": "ログアウト",
+        "LogoutAllPrompt": "すべてのログアウト",
+        "DangerZone": "危ない場所",
+        "DeleteAccountPrompt": "アカウントを消える"
     }
     '::JSONB
 ),

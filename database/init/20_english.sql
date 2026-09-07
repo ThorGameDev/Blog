@@ -86,7 +86,11 @@ INSERT INTO tests (test_id, translation_id, substitutions) VALUES
         "ConfirmPassPrompt": "Confirm New Password",
         "UpdatePassPrompt": "Update",
         "SelectPFPPrompt": "Change Profile Picture",
-        "UpdatePFPPrompt": "Update"
+        "UpdatePFPPrompt": "Update",
+        "LogoutPrompt": "Logout",
+        "LogoutAllPrompt": "Logout on all devices",
+        "DangerZone": "Danger Zone",
+        "DeleteAccountPrompt": "Delete Account"
     }
     '::JSONB
 ),

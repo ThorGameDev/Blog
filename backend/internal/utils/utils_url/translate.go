@@ -66,8 +66,16 @@ func TranslateQueryParams(queryParams url.Values, newLangCode string) string {
 	}
 
 	// replace the from key with the translated value
-	queryParams.Set("from", translatedFrom)
-	encoded := queryParams.Encode()
+
+	// TODO: Once go version is updated to 1.27 or above, just use .Clone()
+	// translatedParams  := queryParams.Clone()
+	translatedParams := make(url.Values, len(queryParams))
+	for k, vals := range queryParams {
+		translatedParams[k] = append([]string(nil), vals...)
+	}
+
+	translatedParams.Set("from", translatedFrom)
+	encoded := translatedParams.Encode()
 	return "?" + encoded
 }
 

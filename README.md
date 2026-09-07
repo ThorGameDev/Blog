@@ -15,7 +15,6 @@ This is a Work In Progress Blog engine to host my own personal blog.
 - Go: Generates HTML pages from templates, and used as the main API
     - jackc/pgx: go bindings to postgreSQL
     - valyala/fasttemplate: Makes HTML template files more efficient to use
-    - crypto: Used for secure password generation and validation
     - google/uuid: Generates random file names without the risk of name collision
 - Python: Isolated worker for safe image re-encoding
     - FastAPI: Used to simplify communication between backend and workers (Should remove eventually)

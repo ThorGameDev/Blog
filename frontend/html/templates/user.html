@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="{{ LangCode }}">
 	<head>
-        <title>{{ Global.BlogTitle }}: {{ PageTitle }}</title>
+		<title>{{ Global.BlogTitle }}: {{ PageTitle }}</title>
 		<meta charset="UTF-8">
 		<link rel="stylesheet" href="/style/site.css">
 		<link rel="stylesheet" href="/style/user.css">
@@ -9,12 +9,20 @@
 		{{ LangTags }}
 	</head>
 	<body>
-        {{ TopBar }}
+		{{ TopBar }}
 		<p>{{ SelectPFPPrompt }}</p>
 		<form action="/api/user/changePFP?lang={{ LangCode }}" method="post" enctype="multipart/form-data">
-            <input type="file" id="newPFP" name="newPFP" accept="image/*">
+			<input type="file" id="newPFP" name="newPFP" accept="image/*">
 			<button type="submit">{{ UpdatePFPPrompt }}</button>
 		</form>
+		<p>{{ LogoutPrompt }}</p>
+		<form action="/api/user/logout?lang={{ LangCode }}" method="post" id="logoutForm">
+			<button type="submit">{{ LogoutPrompt }}</button>
+		</form>
+		<form action="/api/user/logoutAll?lang={{ LangCode }}" method="post" id="logoutForm">
+			<button type="submit">{{ LogoutAllPrompt }}</button>
+		</form>
+        <h2>{{ DangerZone }}</h2>
 		<p>{{ ChangePassPrompt }}</p>
 		<form action="/api/user/changePassword?lang={{ LangCode }}" method="post" id="passwordForm">
 			<input type="password" id="oldPass" name="oldPass" placeholder="{{ OldPassPrompt }}">
@@ -22,6 +30,11 @@
 			<input type="password" id="confirmPass" name="confirmPass" placeholder="{{ ConfirmPassPrompt }}">
 			<button type="submit">{{ UpdatePassPrompt }}</button>
 		</form>
-        {{ BottomBar }}
+		<p>{{ DeleteAccountPrompt }}</p>
+		<form action="/api/user/deleteAccount?lang={{ LangCode }}" method="post" id="logoutForm">
+			<button type="submit">{{ DeleteAccountPrompt }}</button>
+		</form>
+
+		{{ BottomBar }}
 	</body>
 </html>

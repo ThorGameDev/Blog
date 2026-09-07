@@ -61,6 +61,47 @@ func RegisterSession(w http.ResponseWriter, uid int) error {
 	return nil
 }
 
+func EndSession(w http.ResponseWriter, req *http.Request) {
+	sessionId, err := req.Cookie("session_id")
+	if err != nil {
+		if err != http.ErrNoCookie {
+			slog.Error("Unknown cookie error", "err", err)
+		}
+		return
+	}
+	sessionCookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		Expires: time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, sessionCookie)
+
+	db.Pool.Exec(context.Background(),
+		`DELETE FROM sessions WHERE session_token = $1`,
+		sessionId)
+}
+
+func EndAllSession(w http.ResponseWriter, uid int) {
+	sessionCookie := &http.Cookie{
+		Name:     "session_id",
+		Value:    "",
+		Path:     "/",
+		Expires: time.Unix(0, 0),
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}
+	http.SetCookie(w, sessionCookie)
+
+	db.Pool.Exec(context.Background(),
+		`DELETE FROM sessions WHERE uid = $1`,
+		uid)
+}
+
 func GetUID(req *http.Request) int {
 	sessionId, err := req.Cookie("session_id")
 	if err != nil {

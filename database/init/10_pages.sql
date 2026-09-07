@@ -103,6 +103,10 @@ INSERT INTO page_types (
         "UpdatePassPrompt": "Text",
         "SelectPFPPrompt": "Text",
         "UpdatePFPPrompt": "Text",
+        "LogoutPrompt": "Text",
+        "LogoutAllPrompt": "Text",
+        "DangerZone": "Text",
+        "DeleteAccountPrompt": "Text",
         "AccountDetails": "User.AccountDetails"
     }
     '::JSONB,
