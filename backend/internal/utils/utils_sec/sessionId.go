@@ -61,6 +61,19 @@ func RegisterSession(w http.ResponseWriter, uid int) error {
 	return nil
 }
 
+func DeleteAccount(w http.ResponseWriter, uid int) {
+	EndAllSession(w, uid)
+
+	_, err := db.Pool.Exec(context.Background(),
+		`DELETE FROM users WHERE uid = $1`,
+		uid)
+
+	if err != nil {
+		slog.Error("Failed to delete user! ", "err", err)
+		return
+	}
+}
+
 func EndSession(w http.ResponseWriter, req *http.Request) {
 	sessionId, err := req.Cookie("session_id")
 	if err != nil {
@@ -73,7 +86,7 @@ func EndSession(w http.ResponseWriter, req *http.Request) {
 		Name:     "session_id",
 		Value:    "",
 		Path:     "/",
-		Expires: time.Unix(0, 0),
+		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,
@@ -90,7 +103,7 @@ func EndAllSession(w http.ResponseWriter, uid int) {
 		Name:     "session_id",
 		Value:    "",
 		Path:     "/",
-		Expires: time.Unix(0, 0),
+		Expires:  time.Unix(0, 0),
 		HttpOnly: true,
 		Secure:   true,
 		SameSite: http.SameSiteStrictMode,

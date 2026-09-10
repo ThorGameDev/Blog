@@ -15,6 +15,7 @@ CREATE TABLE profile_pictures (
     pfp_id SERIAL,
     user_uploaded BOOLEAN NOT NULL,
     url VARCHAR(256) NOT NULL,
+    UNIQUE (url),
     PRIMARY KEY (pfp_id)
 );
 
@@ -24,6 +25,7 @@ CREATE TABLE users (
     password_hash VARCHAR(60) NOT NULL,
     pfp_id INT NOT NULL,
     privilege SMALLINT NOT NULL,
+    UNIQUE (username),
     FOREIGN KEY (pfp_id) REFERENCES profile_pictures(pfp_id),
     PRIMARY KEY (uid)
 );
@@ -32,7 +34,8 @@ CREATE TABLE sessions (
     session_token VARCHAR(44) NOT NULL,
     uid INT NOT NULL,
     expire_date TIMESTAMP NOT NULL,
-    FOREIGN KEY (uid) REFERENCES users(uid),
+    FOREIGN KEY (uid) REFERENCES users(uid)
+        ON DELETE CASCADE,
     PRIMARY KEY (session_token)
 );
 
@@ -42,6 +45,17 @@ CREATE TABLE languages (
     page_tags TEXT NOT NULL,
     is_primary BOOL NOT NULL,
     PRIMARY KEY (lang_code)
+);
+
+-- TODO: Display the display names, and allow entry
+CREATE TABLE display_names (
+    uid INT NOT NULL,
+    lang_code VARCHAR(2) NOT NULL,
+    display_name VARCHAR(32),
+    FOREIGN KEY (uid) REFERENCES users(uid)
+        ON DELETE CASCADE,
+    FOREIGN KEY (lang_code) REFERENCES languages(lang_code),
+    PRIMARY KEY (uid, lang_code)
 );
 
 CREATE TABLE error_codes (
@@ -105,11 +119,12 @@ CREATE INDEX idx_test_translationid ON tests (translation_id);
 CREATE TABLE comments (
     comment_id SERIAL,
     translation_id INT NOT NULL,
-    uid INT NOT NULL,
+    uid INT NOT NULL DEFAULT 2, -- Default set to "DELETED"
     container_id INT,
     content TEXT,
     FOREIGN KEY (translation_id) REFERENCES translations(translation_id),
-    FOREIGN KEY (uid) REFERENCES users(uid),
+    FOREIGN KEY (uid) REFERENCES users(uid)
+        ON DELETE SET DEFAULT,
     FOREIGN KEY (container_id) REFERENCES comments(comment_id),
     PRIMARY KEY (comment_id)
 )
