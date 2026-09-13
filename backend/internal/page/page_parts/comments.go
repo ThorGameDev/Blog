@@ -52,20 +52,20 @@ func getComments(translationId int, langCode string, containerId *int) string {
 			return ""
 		}
 
-		fmt.Fprintf(&commentsSection, `<div class=comment><h3>%s</h3><img src="%s"><p>%s</p>`, username, pfpURL, content)
+		fmt.Fprintf(&commentsSection, `<article class=comment><header><img src="%s"><h3>%s</h3></header><p>%s</p><footer>`, pfpURL, username, content)
 		if numChildren >= 1 {
 			fmt.Fprintf(&commentsSection, `<a href="%s?commentId=%d" class=commentExpand>%d{{ Global.Replies }}</a>`, newURL, commentId, numChildren)
 		}
 		fmt.Fprintf(&commentsSection, `<a href="%s?commentId=%d" class=reply>{{ Global.SubmitReply }}</a>`, newURL, commentId)
-		commentsSection.WriteString(`</div>`)
+		commentsSection.WriteString(`</footer></article>`)
 	}
 	return commentsSection.String()
 }
 
 func GenerateCommentSection(uid int, translationId int, langCode string) string {
 	var commentSection strings.Builder
+	commentSection.WriteString(`<aside id=commentSection>`)
 	commentSection.WriteString(`<h2>{{ Global.CommentSectionHeader }}</h2>`)
-	commentSection.WriteString(`<div id=commentSection>`)
 	// Add the "Reply to" form if logged in
 	if uid != -1 {
 		fmt.Fprintf(&commentSection, `<form action="/api/blog/comment?translationId=%d&lang=%s" method=post>`, translationId, langCode)
@@ -77,7 +77,7 @@ func GenerateCommentSection(uid int, translationId int, langCode string) string 
 	}
 	commentSection.WriteString(`<div class=comments>`)
 	commentSection.WriteString(getComments(translationId, langCode, nil))
-	commentSection.WriteString(`</div></div>`)
+	commentSection.WriteString(`</div></aside>`)
 
 	return commentSection.String()
 }

@@ -124,3 +124,19 @@ main {
   display: block;
   padding: 0.3rem 0 0.3rem 0;
 }
+
+.comment header {
+  margin: 0;
+  padding: 0;
+}
+
+.comment header h3 {
+  margin: 0;
+  padding: 0;
+}
+
+.comment header img {
+  height: 3.1em;
+  width: 3.1em;
+  float: left;
+}
