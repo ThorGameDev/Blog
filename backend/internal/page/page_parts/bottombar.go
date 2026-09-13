@@ -11,6 +11,9 @@ import (
 func GenerateBottomBar(langCode string) string {
 	var bottomBar strings.Builder
 
+	// Close the content, created by the top bar
+	bottomBar.WriteString("</main></div>")
+
 	bottomBar.WriteString("<div id=bottomBar>")
 
 	copyright := db.GetSiteSetting("Copyright")

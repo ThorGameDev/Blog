@@ -48,9 +48,7 @@
 
 @font-face {
   font-family: "fallback";
-  src: local("Arial"),
-    local("Arimo"),
-    local("Liberation Sans");
+  src: local("Arial"), local("Arimo"), local("Liberation Sans");
   size-adjust: 107.45%;
 }
 
@@ -63,4 +61,68 @@
 body {
   font-family: nobile, fallback, fallback2;
   line-height: 1.18;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+}
+
+#content {
+  flex: 1;
+}
+
+#bottomBar {
+  background-color: lightgrey;
+}
+
+#topBar {
+  background-color: lightgrey;
+  display: flex;
+  height: 3.5em;
+}
+
+#topBar nav {
+  flex: 1;
+  text-align: center;
+  align-content: center;
+}
+
+#topBar nav a {
+  padding: 0.2em;
+}
+
+#topBar h2 {
+  margin: 1em;
+}
+
+#accountIcon {
+  content: fit;
+}
+
+#accountIcon img {
+  width: 3.1rem;
+  height: 3.1rem;
+  border-radius: 50%;
+  border: 0.2rem solid black;
+}
+
+#content {
+  display: flex;
+  flex-direction: row;
+}
+
+main {
+  padding: 0.5rem;
+}
+
+#sideBar {
+  background-color: lightgrey;
+  padding: 1rem;
+  width: 9rem;
+  text-align: center;
+}
+
+#sideBar a {
+  display: block;
+  padding: 0.3rem 0 0.3rem 0;
 }

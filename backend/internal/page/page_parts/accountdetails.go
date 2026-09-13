@@ -12,38 +12,15 @@ import (
 )
 
 func createLoginLinks(fromPageUrl string, langCode string) string {
-	queryParamData := url.Values{}
-	queryParamData.Set("from", "/"+langCode+fromPageUrl)
-	queryParams := queryParamData.Encode()
-	var loginURL string
-	var loginTitle string
-	var signupURL string
-	var signupTitle string
+	queryParams := url.Values{}
+	queryParams.Set("from", "/"+langCode+fromPageUrl)
 
-	const sql_query string = `SELECT url, title
-		FROM translations
-		WHERE page_id = (
-			SELECT page_id FROM translations
-				WHERE url = $1
-				AND lang_code = $2
-		)
-		AND lang_code = $3`
-	err := db.Pool.QueryRow(context.Background(), sql_query, "/login.html", "en", langCode).Scan(&loginURL, &loginTitle)
-	if err != nil {
-		slog.Error("Failed to get url and title of login", "err", err)
-		return ""
-	}
-	err = db.Pool.QueryRow(context.Background(), sql_query, "/signup.html", "en", langCode).Scan(&signupURL, &signupTitle)
-	if err != nil {
-		slog.Error("Failed to get url and title of signup", "err", err)
-		return ""
-	}
+	loginURL := utils_url.TranslateURL("/en/login.html", queryParams, langCode)
 
-	return fmt.Sprintf(`<a href="/%s%s?%s">%s</a><a href="/%s%s?%s">%s</a>`,
-		langCode, loginURL, queryParams, loginTitle,
-		langCode, signupURL, queryParams, signupTitle,
-	)
+	// TODO: Use a "Not logged in" profile picture, and add a "Not logged in" tool tip
+	return fmt.Sprintf(`<a id=accountIcon href="%s"><img src=/res/default_pfp.png></a>`, loginURL)
 }
+
 func generateAccountDetails(uid int, pageURL string, langCode string) string {
 	if uid == -1 {
 		return createLoginLinks(pageURL, langCode)
@@ -64,5 +41,5 @@ func generateAccountDetails(uid int, pageURL string, langCode string) string {
 		return ""
 	}
 	accountPageURL := utils_url.TranslateURL("/en/user.html", nil, langCode)
-	return fmt.Sprintf(`<a href="%s"><h3>%s</h3><img src="%s"></a>`, accountPageURL, username, pfp_url)
+	return fmt.Sprintf(`<a id=accountIcon href="%s" title="%s"><img src="%s"></a>`, accountPageURL, username, pfp_url)
 }

@@ -26,8 +26,14 @@ func GenerateTopBar(uid int, pageURL string, langCode string, queryParams url.Va
 	topbar.WriteString(generateAccountDetails(uid, pageURL, langCode))
 	topbar.WriteString("</div>")
 
+	// Begin contents div. Will not be completed until the bottom bar is produced
+	topbar.WriteString("<div id=content>")
+
 	// Work on side bar
 	topbar.WriteString("<nav id=sideBar>")
+
+	// Add the "Swap translation" links to the top
+	topbar.WriteString(generateLangLinks(langCode, pageURL, queryParams))
 
 	// get list of all URLs for the sidebar
 	pageList, err = utils_url.GetPagesOfIndex(langCode, 1)
@@ -38,9 +44,11 @@ func GenerateTopBar(uid int, pageURL string, langCode string, queryParams url.Va
 		fmt.Fprintf(&topbar, `<a href="/%s%s">%s</a>`, langCode, val.PageURL, val.PageTitle)
 	}
 
-	// Add the "Swap translation" links to the bottom
-	topbar.WriteString(generateLangLinks(langCode, pageURL, queryParams))
+	// End sidebar
 	topbar.WriteString("</nav>")
+
+	// Will not be completed until the bottom bar is produced
+	topbar.WriteString("<main>")
 
 	return topbar.String()
 }
