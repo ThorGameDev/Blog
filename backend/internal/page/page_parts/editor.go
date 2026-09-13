@@ -103,7 +103,7 @@ func GenerateEditor(langCode string, pageId string) string {
 
 		fmt.Fprintf(&editorData, `<h3>%s</h3>`, rowTitle)
 		fmt.Fprintf(&editorData, `<form action="/api/creator/addTest?translation=%d" method="post">`, translationId)
-		editorData.WriteString(`<button type="submit">{{ AddTestPrompt }}</button></form></div>`)
+		editorData.WriteString(`<button type="submit">{{ AddTestPrompt }}</button>`)
 		editorData.WriteString(`</form>`)
 
 		fmt.Fprintf(&editorData, `<a hreflang="%s" href="/%s%s">%s</a>`, rowLangCode, rowLangCode, rowURL, rowURL)
@@ -156,7 +156,7 @@ func GenerateEditor(langCode string, pageId string) string {
 					case "Content":
 						fmt.Fprintf(&comparisonData, `<textarea name="%s" id="%s">%s</textarea>`, escKey, inputFieldId, testVal)
 					}
-					comparisonData.WriteString(`</br>`)
+					comparisonData.WriteString(`<br>`)
 				}
 			}
 			// Close the editor form and div, while including a submit button
