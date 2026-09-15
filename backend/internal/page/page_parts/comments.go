@@ -54,9 +54,9 @@ func GetComments(translationId int, langCode string, containerId *int) string {
 
 		fmt.Fprintf(&commentsSection, `<article class=comment><header><img src="%s"><h3>%s</h3></header><p>%s</p><footer>`, pfpURL, username, content)
 		if numChildren >= 1 {
-			fmt.Fprintf(&commentsSection, `<a href="%s?commentId=%d" class=commentExpand>%d{{ Global.Replies }}</a>`, newURL, commentId, numChildren)
+			fmt.Fprintf(&commentsSection, `<a href="%s?commentId=%d" class=commentExpand>%d{{G Replies }}</a>`, newURL, commentId, numChildren)
 		}
-		fmt.Fprintf(&commentsSection, `<a href="%s?commentId=%d" class=reply>{{ Global.SubmitReply }}</a>`, newURL, commentId)
+		fmt.Fprintf(&commentsSection, `<a href="%s?commentId=%d" class=reply>{{G SubmitReply }}</a>`, newURL, commentId)
 		commentsSection.WriteString(`</footer></article>`)
 	}
 	return commentsSection.String()
@@ -65,15 +65,15 @@ func GetComments(translationId int, langCode string, containerId *int) string {
 func GenerateCommentSection(uid int, translationId int, langCode string) string {
 	var commentSection strings.Builder
 	commentSection.WriteString(`<aside id=commentSection>`)
-	commentSection.WriteString(`<h2>{{ Global.CommentSectionHeader }}</h2>`)
+	commentSection.WriteString(`<h2>{{G CommentSectionHeader }}</h2>`)
 	// Add the "Reply to" form if logged in
 	if uid != -1 {
 		fmt.Fprintf(&commentSection, `<form action="/api/blog/comment?translationId=%d&lang=%s" method=post>`, translationId, langCode)
 		commentSection.WriteString(`<textarea name=commentData></textarea>`)
-		commentSection.WriteString(`<button type=submit>{{ Global.SubmitComment }}</button>`)
+		commentSection.WriteString(`<button type=submit>{{G SubmitComment }}</button>`)
 		commentSection.WriteString(`</form>`)
 	} else {
-		commentSection.WriteString(`<p>{{ Global.LoginToComment }}</p>`)
+		commentSection.WriteString(`<p>{{G LoginToComment }}</p>`)
 	}
 	commentSection.WriteString(`<div class=comments>`)
 	commentSection.WriteString(GetComments(translationId, langCode, nil))
@@ -113,7 +113,7 @@ func GenerateCommentInfo(uid int, langCode string, queryParams url.Values) strin
 	if uid != -1 {
 		fmt.Fprintf(&commentInfo, `<form action="/api/blog/reply?commentId=%d&lang=%s" method=post>`, commentId, langCode)
 		commentInfo.WriteString(`<textarea name=replyData></textarea>`)
-		commentInfo.WriteString(`<button type=submit>{{ Global.SubmitReply }}</button>`)
+		commentInfo.WriteString(`<button type=submit>{{G SubmitReply }}</button>`)
 		commentInfo.WriteString(`</form>`)
 	}
 

@@ -24,8 +24,8 @@ func GenerateBottomBar(langCode string) string {
 	licenseURL := db.GetSiteSetting("LicenseURL")
 	sourceCodeURL := db.GetSiteSetting("SourceCodeURL")
 
-	fmt.Fprintf(&bottomBar, `<a href="%s">{{ Global.AGPLv3License }}</a>`, licenseURL)
-	fmt.Fprintf(&bottomBar, `<a href="%s">{{ Global.SourceCode }}</a>`, sourceCodeURL)
+	fmt.Fprintf(&bottomBar, `<a href="%s">{{G AGPLv3License }}</a>`, licenseURL)
+	fmt.Fprintf(&bottomBar, `<a href="%s">{{G SourceCode }}</a>`, sourceCodeURL)
 
 	// get list of all URLs for the topbar
 	pageList, err := utils_url.GetPagesOfIndex(langCode, 4)

@@ -22,14 +22,14 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
     'ja',
     '
     {
-        "Global.BlogTitle": "ブログ",
-        "Global.AGPLv3License": "AGPLv3 License",
-        "Global.SourceCode": "ソースコード",
-        "Global.CommentSectionHeader": "コメント",
-        "Global.SubmitComment": "コメントする",
-        "Global.LoginToComment": "ログインしてください。",
-        "Global.SubmitReply": "返信",
-        "Global.Replies": "件の返信"
+        "BlogTitle": "ブログ",
+        "AGPLv3License": "AGPLv3 License",
+        "SourceCode": "ソースコード",
+        "CommentSectionHeader": "コメント",
+        "SubmitComment": "コメントする",
+        "LoginToComment": "ログインしてください。",
+        "SubmitReply": "返信",
+        "Replies": "件の返信"
     }
     '::JSONB
 );

@@ -54,7 +54,7 @@ func isTestActive(translationId int, testId string) bool {
 
 const PAGES_PER_COOKIE = 64
 
-func getABver(w http.ResponseWriter, req *http.Request, translationId int, langCode string) (string, string) {
+func GetABver(w http.ResponseWriter, req *http.Request, translationId int, langCode string) (string, string) {
 	// If there is a test query parameter, display that test simply
 	if req.URL.Query().Has("test") {
 		return req.URL.Query().Get("test"), "00000001"

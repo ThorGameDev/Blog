@@ -1,6 +1,7 @@
 package api_blog
 
 import (
+	"blogbackend/internal/page"
 	"blogbackend/internal/page/page_parts"
 	"blogbackend/internal/utils/db"
 	"context"
@@ -41,8 +42,11 @@ func getReplies(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	_, siteTestId := page.GetABver(w, req, translationId, langCode)
+
 	commentHtml := page_parts.GetComments(translationId, langCode, &commentId)
+	translatedHtml := page.ApplyGlobalSubstitutions(commentHtml, langCode, siteTestId)
 
 	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, commentHtml)
+	fmt.Fprint(w, translatedHtml)
 }

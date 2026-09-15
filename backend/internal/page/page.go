@@ -19,6 +19,31 @@ import (
 	"github.com/valyala/fasttemplate"
 )
 
+func ApplyGlobalSubstitutions(target string, langCode string, siteTestId string) string {
+	// Get global substitutions
+	//var globalSubstitutions map[string]string
+	var globalSubstitutions map[string]interface{}
+	err := db.Pool.QueryRow(context.Background(),
+		`SELECT substitutions FROM sitewide_tests
+			WHERE lang_code = $1
+			ORDER BY (test_id = $2) DESC
+			LIMIT 1`,
+		langCode, siteTestId).Scan(&globalSubstitutions)
+	if err != nil {
+		if !errors.Is(err, pgx.ErrNoRows) {
+			slog.Error("Critical SQL error while getting global substitutions", "err", err)
+		}
+		return target
+	}
+	slog.Info("Subs", "s", globalSubstitutions)
+
+	outTemplate := fasttemplate.New(target, "{{G ", " }}")
+	output := outTemplate.ExecuteString(globalSubstitutions)
+
+	return output
+}
+
+
 func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
 	newURL := utils_url.TranslateURL("/##"+fromPage, queryParams, langCode)
 	http.Redirect(w, req, newURL, http.StatusPermanentRedirect)
@@ -90,23 +115,7 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	}
 
 	// Get test id
-	testId, siteTestId := getABver(w, req, translationId, langCode)
-
-	// Get global substitutions
-	var globalSubstitutions map[string]string
-	err = db.Pool.QueryRow(context.Background(),
-		`SELECT substitutions FROM sitewide_tests
-			WHERE lang_code = $1
-			ORDER BY (test_id = $2) DESC
-			LIMIT 1`,
-		langCode, siteTestId).Scan(&globalSubstitutions)
-	if err != nil {
-		if !errors.Is(err, pgx.ErrNoRows) {
-			slog.Error("Critical SQL error while getting global substitutions", "err", err)
-		}
-		http.Error(w, "Could not find page in SQL", http.StatusNotFound)
-		return
-	}
+	testId, siteTestId := GetABver(w, req, translationId, langCode)
 
 	// Get substitutions
 	var substitutions map[string]string
@@ -154,8 +163,6 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 		case "Text", "TemplateText", "Content":
 			if substitutionValue, ok := substitutions[key]; ok {
 				finalSubstitutions[key] = substitutionValue
-			} else if globalSubstitutionValue, ok := globalSubstitutions[key]; ok {
-				finalSubstitutions[key] = globalSubstitutionValue
 			} else {
 				slog.Warn("Untranslated content in", "url", "/"+langCode+pageURL, "key", key)
 				finalSubstitutions[key] = ""
@@ -197,9 +204,11 @@ func pageGen(w http.ResponseWriter, req *http.Request) {
 	pageTemplate := fasttemplate.New(pageData, "{{ ", " }}")
 	htmlData := pageTemplate.ExecuteString(finalSubstitutions)
 
+	finalOutput := ApplyGlobalSubstitutions(htmlData, langCode, siteTestId)
+
 	// Return
 	w.Header().Set("Content-Type", "text/html")
-	fmt.Fprint(w, htmlData)
+	fmt.Fprint(w, finalOutput)
 }
 
 func Register() {

@@ -11,7 +11,7 @@ import (
 func GenerateTopBar(uid int, pageURL string, langCode string, queryParams url.Values) string {
 	var topbar strings.Builder
 	topbar.WriteString("<div id=topBar>")
-	topbar.WriteString("<h2>{{ Global.BlogTitle }}</h2>")
+	topbar.WriteString("<h2>{{G BlogTitle }}</h2>")
 	topbar.WriteString("<nav>")
 
 	// get list of all URLs for the topbar

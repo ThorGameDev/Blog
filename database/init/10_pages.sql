@@ -7,9 +7,6 @@ INSERT INTO page_types (
     'Global',
     '
     {
-        "Global.BlogTitle": "Text",
-        "Global.AGPLv3License": "Text",
-        "Global.SourceCode": "Text",
         "TopBar": "TopBar",
         "BottomBar": "BottomBar",
         "PageTitle": "Title",
@@ -20,23 +17,8 @@ INSERT INTO page_types (
     NULL
 ),
 (
-    -2,
-    -1,
-    'HasComments',
-    '
-    {
-        "Global.CommentSectionHeader": "Text",
-        "Global.SubmitComment": "Text",
-        "Global.LoginToComment": "Text",
-        "Global.Replies": "Text",
-        "Global.SubmitReply": "Text"
-    }
-    '::JSONB,
-    NULL
-),
-(
     1,
-    -2,
+    -1,
     'BlogPage',
     '
     {
@@ -114,7 +96,7 @@ INSERT INTO page_types (
 ),
 (
     103,
-    -2,
+    -1,
     'Comments',
     '
     {

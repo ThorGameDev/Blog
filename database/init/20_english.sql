@@ -17,14 +17,14 @@ INSERT INTO sitewide_tests (test_id, lang_code, substitutions) VALUES
     'en',
     '
     {
-        "Global.BlogTitle": "Blog",
-        "Global.AGPLv3License": "AGPLv3 License",
-        "Global.SourceCode": "Source Code",
-        "Global.CommentSectionHeader": "Comments",
-        "Global.SubmitComment": "Comment",
-        "Global.LoginToComment": "Please log in to post a comment",
-        "Global.SubmitReply": "Reply",
-        "Global.Replies": " Replies"
+        "BlogTitle": "Blog",
+        "AGPLv3License": "AGPLv3 License",
+        "SourceCode": "Source Code",
+        "CommentSectionHeader": "Comments",
+        "SubmitComment": "Comment",
+        "LoginToComment": "Please log in to post a comment",
+        "SubmitReply": "Reply",
+        "Replies": " Replies"
     }
     '::JSONB
 );
