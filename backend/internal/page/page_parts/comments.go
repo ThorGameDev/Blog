@@ -13,7 +13,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func getComments(translationId int, langCode string, containerId *int) string {
+func GetComments(translationId int, langCode string, containerId *int) string {
 	// Get all root comments for the current page, with oldest first
 	rows, err := db.Pool.Query(context.Background(),
 		`SELECT comment_id,
@@ -76,7 +76,7 @@ func GenerateCommentSection(uid int, translationId int, langCode string) string 
 		commentSection.WriteString(`<p>{{ Global.LoginToComment }}</p>`)
 	}
 	commentSection.WriteString(`<div class=comments>`)
-	commentSection.WriteString(getComments(translationId, langCode, nil))
+	commentSection.WriteString(GetComments(translationId, langCode, nil))
 	commentSection.WriteString(`</div></aside>`)
 
 	return commentSection.String()
@@ -120,7 +120,7 @@ func GenerateCommentInfo(uid int, langCode string, queryParams url.Values) strin
 	// Add replies
 	commentInfo.WriteString("<div class=replies>")
 
-	replies := getComments(translationId, langCode, &commentId)
+	replies := GetComments(translationId, langCode, &commentId)
 	commentInfo.WriteString(replies)
 	commentInfo.WriteString("</div></div>")
 

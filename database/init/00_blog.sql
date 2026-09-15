@@ -121,7 +121,7 @@ CREATE TABLE comments (
     translation_id INT NOT NULL,
     uid INT NOT NULL DEFAULT 2, -- Default set to "DELETED"
     container_id INT,
-    content TEXT,
+    content TEXT NOT NULL,
     FOREIGN KEY (translation_id) REFERENCES translations(translation_id),
     FOREIGN KEY (uid) REFERENCES users(uid)
         ON DELETE SET DEFAULT,

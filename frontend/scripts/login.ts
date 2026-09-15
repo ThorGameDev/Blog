@@ -15,7 +15,7 @@ async function sendLogin(): Promise<void> {
         const response = await fetch(form.action, {
             method: "POST",
             body: dataURL
-        }) ;
+        });
 
         if (response.redirected) {
             window.location.replace(response.url)
@@ -32,7 +32,7 @@ async function sendLogin(): Promise<void> {
 }
 
 
-form?.addEventListener("submit", function(event){
+form?.addEventListener("submit", function (event) {
     event.preventDefault();
     sendLogin()
 })
