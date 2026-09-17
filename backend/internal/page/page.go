@@ -35,14 +35,12 @@ func ApplyGlobalSubstitutions(target string, langCode string, siteTestId string)
 		}
 		return target
 	}
-	slog.Info("Subs", "s", globalSubstitutions)
 
 	outTemplate := fasttemplate.New(target, "{{G ", " }}")
 	output := outTemplate.ExecuteString(globalSubstitutions)
 
 	return output
 }
-
 
 func badURLRedirect(w http.ResponseWriter, req *http.Request, fromPage string, queryParams url.Values, langCode string) {
 	newURL := utils_url.TranslateURL("/##"+fromPage, queryParams, langCode)
