@@ -1,4 +1,5 @@
-import { err } from "./lib/utils.ts"
+import { err, formJsEnhancement } from "./lib/utils.ts"
+import { getAccountDetails } from "./lib/account.ts"
 
 const langCode = document.getElementsByTagName("html")[0].getAttribute("lang")
 
@@ -33,7 +34,44 @@ function hideReplies(targetElement: HTMLElement): void {
     }
 }
 
-function replyAction(targetElement: HTMLElement, commentId: string): void {
+
+function postReply(targetElement: HTMLElement, commentForm: HTMLFormElement){
+    const accountDetails = getAccountDetails() ?? err("No account, could not post reply");
+
+    //create the comment
+    const newComment = document.createElement("article");
+    newComment.setAttribute("class", "comment");
+
+    // Create the header
+    const header = document.createElement("header");
+
+    const profilePic = document.createElement("img");
+    profilePic.setAttribute("src", accountDetails[1]);
+    header.append(profilePic);
+
+    const profileName = document.createElement("h3");
+    profileName.innerText = accountDetails[0];
+    header.append(profileName);
+
+    newComment.append(header);
+
+    // Create the body
+    const body = document.createElement("p");
+    const formData = new FormData(commentForm);
+    const replyText = formData.get("replyData") as string;
+    body.innerText = replyText;
+    newComment.append(body);
+
+    // TODO: Create the footer.
+    // This is tricky, because as of now, the created comment ID is not shown.
+    // Although, it would be a half-decent cheat to make it impossible to reply to your own comments in general
+    // Then the footer would become un-necessary
+    // Another option is to force a comments expand on reply, and to add a "check if changed" feature
+
+    targetElement.append(newComment);
+}
+
+function toggleCommentReplyForm(targetElement: HTMLElement, commentId: string): void {
     // if the form already exists, toggle visibility
     const oldReplyForm = targetElement.querySelector(":scope > .replyForm");
     if (oldReplyForm != null) {
@@ -50,6 +88,9 @@ function replyAction(targetElement: HTMLElement, commentId: string): void {
     replyForm.setAttribute("class", "replyForm");
     replyForm.setAttribute("action", `/api/blog/reply?commentId=${commentId}&lang=${langCode}`);
     replyForm.setAttribute("method", "post");
+    formJsEnhancement(replyForm, function() {
+        postReply(targetElement, replyForm);
+    })
 
     // Add input field
     const replyData = document.createElement("textarea");
@@ -78,7 +119,7 @@ function reRouteComment(comment: HTMLElement): void {
             const commentId = params.get("commentId") ?? err("Comment link had no commentId")
 
             // TODO: Generate a reply form
-            replyAction(comment, commentId)
+            toggleCommentReplyForm(comment, commentId)
         })
     }
     const commentExpand = comment.getElementsByClassName("commentExpand")[0]

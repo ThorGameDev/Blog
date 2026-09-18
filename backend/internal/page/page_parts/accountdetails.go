@@ -18,7 +18,7 @@ func createLoginLinks(fromPageUrl string, langCode string) string {
 	loginURL := utils_url.TranslateURL("/en/login.html", queryParams, langCode)
 
 	// TODO: Use a "Not logged in" profile picture, and add a "Not logged in" tool tip
-	return fmt.Sprintf(`<a id=accountIcon href="%s"><img src=/res/default_pfp.png></a>`, loginURL)
+	return fmt.Sprintf(`<a id=accountlessIcon href="%s"><img src=/res/default_pfp.png></a>`, loginURL)
 }
 
 func generateAccountDetails(uid int, pageURL string, langCode string) string {
